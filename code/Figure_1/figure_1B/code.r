@@ -120,6 +120,14 @@ forestplot = ggplot(
   scale_color_manual(values = group_colors)
 
 
-pdf("forestplot.pdf", width = 3.5, height = 3)
-forestplot
-dev.off()
+ggsave(
+  filename = "forestplot.tiff",
+  plot = forestplot,
+  device = ragg::agg_tiff,
+  width = 6,
+  height = 5,
+  units = "in",
+  res = 600,
+  compression = "lzw",
+  background = "white"
+)
