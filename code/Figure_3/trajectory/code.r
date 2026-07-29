@@ -154,11 +154,13 @@ p_pseudotime
 
 p_group <- monocle::plot_cell_trajectory(
   cds,
-  color_by = "groups"
+  color_by = "Pseudotime"
 ) +
   #scale_color_manual(values = c("Healthy" = "#1F5C5C", "CD" = "#E18487")) +
   theme_classic(base_size = 14) +
-  labs(color = "groups")
+  scale_color_viridis_c(option = "magma", direction = 1) +
+  labs(color = "Pseudotime") +
+  facet_grid(~groups)
 
 p_group
 
@@ -337,3 +339,39 @@ FeaturePlot(
     ),
     order=TRUE
 )
+
+
+
+
+pseudo_df <- pData(cds) |>
+  as.data.frame() |>
+  mutate(
+    groups = factor(
+      groups,
+      levels = c("naive", "pbs", "igg", "antipd1", "antictla4")
+    )
+  )
+
+ggplot(
+  pseudo_df,
+  aes(
+    x = Pseudotime,
+    fill = groups
+  )
+) +
+  geom_density(
+    alpha = 0.35,
+    adjust = 1
+  ) +
+  facet_wrap(
+    ~ groups,
+    ncol = 1
+  ) +
+  theme_classic() +
+  labs(
+    x = "Pseudotime",
+    y = "Density"
+  ) +
+  theme(
+    legend.position = "none"
+  )

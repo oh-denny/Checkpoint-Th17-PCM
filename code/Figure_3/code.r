@@ -69,9 +69,6 @@ DimPlot(
     axis.ticks = element_blank()
   )
 
-FeaturePlot(t_cells, features = c("Cd8a"))
-
-
 
 
 t_cells_CD4 = subset(
