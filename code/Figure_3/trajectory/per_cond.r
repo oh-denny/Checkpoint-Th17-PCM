@@ -862,217 +862,6 @@ ggsave(
 
 
 
-#### pSEUDO BULK
-
-
-library(Seurat)
-library(DESeq2)
-library(dplyr)
-library(tibble)
-
-DefaultAssay(t_cells_CD4) <- "RNA"
-
-pb_global <- AggregateExpression(
-  t_cells_CD4,
-  assays = "RNA",
-  group.by = c("cartig", "groups"),
-  return.seurat = FALSE,
-  slot = "counts"
-)
-
-pb_counts <- pb_global$RNA
-
-
-
-t_cells_CD4$pb_id <- paste(
-  t_cells_CD4$cartig,
-  t_cells_CD4$groups,
-  sep = "__"
-)
-
-pb_global <- AggregateExpression(
-  t_cells_CD4,
-  assays = "RNA",
-  group.by = "pb_id",
-  return.seurat = FALSE,
-  slot = "counts"
-)
-
-pb_counts <- pb_global$RNA
-
-pb_counts[1:3,1:3]
-
-pb_metadata <- t_cells_CD4@meta.data |>
-  dplyr::select(pb_id, cartig, groups) |>
-  dplyr::distinct() |>
-  dplyr::mutate(
-    pb_id_counts = gsub("_", "-", pb_id)
-  )
-
-pb_metadata <- pb_metadata[
-  match(colnames(pb_counts), pb_metadata$pb_id_counts),
-  ,
-  drop = FALSE
-]
-
-rownames(pb_metadata) <- pb_metadata$pb_id_counts
-
-
-
-
-
-keep_genes <- rowSums(pb_counts >= 10) >= 2
-
-pb_counts_filtered <- pb_counts[
-  keep_genes,
-  ,
-  drop = FALSE
-]
-
-
-dds <- DESeqDataSetFromMatrix(
-  countData = round(pb_counts_filtered),
-  colData = pb_metadata,
-  design = ~ groups
-)
-
-dds$groups <- factor(
-  dds$groups,
-  levels = c(
-    "naive",
-    "pbs",
-    "igg",
-    "antipd1",
-    "antictla4"
-  )
-)
-
-dds <- DESeq(dds)
-
-
-res_pbs_naive <- results(
-  dds,
-  contrast = c(
-    "groups",
-    "pbs",
-    "naive"
-  ),
-  alpha = 0.05
-) |>
-  as.data.frame() |>
-  rownames_to_column("gene") |>
-  arrange(padj)
-
-
-res_igg_pbs <- results(
-  dds,
-  contrast = c(
-    "groups",
-    "igg",
-    "pbs"
-  ),
-  alpha = 0.05
-) |>
-  as.data.frame() |>
-  rownames_to_column("gene") |>
-  arrange(padj)
-
-
-
-res_pd1_pbs <- results(
-  dds,
-  contrast = c(
-    "groups",
-    "antipd1",
-    "pbs"
-  ),
-  alpha = 0.05
-) |>
-  as.data.frame() |>
-  rownames_to_column("gene") |>
-  arrange(padj)
-
-
-res_ctla4_pbs <- results(
-  dds,
-  contrast = c(
-    "groups",
-    "antictla4",
-    "pbs"
-  ),
-  alpha = 0.05
-) |>
-  as.data.frame() |>
-  rownames_to_column("gene") |>
-  arrange(padj)
-
-head(res_ctla4_pbs)
-
-table(res_ctla4_pbs$pvalue < 0.05)
-
-
-
-
-
-
-gene_class <- rep(
-    "Other",
-    nrow(avg_expr_scaled)
-)
-
-names(gene_class) <- rownames(avg_expr_scaled)
-
-gene_class[rownames(avg_expr_scaled) %in% genes_infection] <- "PBS"
-
-gene_class[rownames(avg_expr_scaled) %in% genes_pd1] <- "PD1"
-
-gene_class[rownames(avg_expr_scaled) %in% genes_ctla4] <- "CTLA4"
-
-gene_class[rownames(avg_expr_scaled) %in% genes_igg] <- "IgG"
-
-
-comparison_cols <- c(
-
-    PBS = "#F4A300",
-
-    IgG = "#D95F9F",
-
-    PD1 = "#4DBBD5",
-
-    CTLA4 = "#E64B35"
-
-)
-
-left_ha <- rowAnnotation(
-
-    Comparison = gene_class,
-
-    col = list(
-        Comparison = comparison_cols
-    )
-
-)
-
-
-ht <- left_ha +
-
-Heatmap(
-    avg_expr_scaled,
-
-    col = col_fun,
-
-    cluster_rows = FALSE,
-
-    cluster_columns = FALSE,
-
-    top_annotation = ha,
-
-    show_row_names = TRUE,
-
-    show_column_names = TRUE
-)
-
-draw(ht)
 
 
 
@@ -2464,6 +2253,24 @@ saveRDS(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Criar uma coluna indicando se Il17a está presente no termo GO
 go_table <- go_table |>
   dplyr::mutate(
@@ -3426,105 +3233,6 @@ ggplot2::ggsave(
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ============================================================
-# ALUVIAL:
-# PROGRAMA TRANSCRICIONAL -> VIAS GO REPRESENTATIVAS
-#
-# Requer os objetos:
-#   go_classified_filtered
-#   program_summary_complete
-#   p_program_heatmap
-# ============================================================
-
-
-# ============================================================
-# 0. PACOTES
-# ============================================================
-
-required_packages <- c(
-  "dplyr",
-  "tidyr",
-  "stringr",
-  "ggplot2",
-  "ggalluvial",
-  "patchwork",
-  "ragg"
-)
-
-missing_packages <- required_packages[
-  !vapply(
-    required_packages,
-    requireNamespace,
-    quietly = TRUE,
-    FUN.VALUE = logical(1)
-  )
-]
-
-if (length(missing_packages) > 0) {
-  stop(
-    "Instale os seguintes pacotes: ",
-    paste(missing_packages, collapse = ", ")
-  )
-}
-
-
-# ============================================================
-# 1. VERIFICAR OBJETO
-# ============================================================
-
-if (!exists("go_classified_filtered")) {
-  stop(
-    "O objeto 'go_classified_filtered' não foi encontrado."
-  )
-}
-
-required_columns <- c(
-  "Contrast",
-  "Program",
-  "Description",
-  "Signature_genes",
-  "N_signature_genes",
-  "p.adjust"
-)
-
-missing_columns <- setdiff(
-  required_columns,
-  colnames(go_classified_filtered)
-)
-
-if (length(missing_columns) > 0) {
-  stop(
-    "Faltam as seguintes colunas em go_classified_filtered: ",
-    paste(missing_columns, collapse = ", ")
-  )
-}
-
-
-# ============================================================
-# 2. ORDEM DOS PROGRAMAS
-#
-# Deve ser a mesma utilizada no heatmap.
-# ============================================================
-
 program_levels <- c(
   "Less differentiated",
   "T-cell activation",
@@ -3541,971 +3249,151 @@ contrast_levels <- c(
 )
 
 
-# ============================================================
-# 3. NORMALIZAR NOMES DE TERMOS SEMANTICAMENTE SEMELHANTES
-#
-# Isso evita separar:
-#   regulation of inflammatory response
-#   positive regulation of inflammatory response
-#
-# Mas mantém o significado biológico principal.
-# ============================================================
-
-go_for_alluvial <- go_classified_filtered |>
+alluvial_data <- program_summary_complete |>
   dplyr::mutate(
 
-    Program = as.character(
-      .data$Program
+    Program = factor(
+      as.character(Program),
+      levels = program_levels
     ),
 
-    Description = as.character(
-      .data$Description
+    Contrast = factor(
+      as.character(Contrast),
+      levels = contrast_levels
     ),
 
-    description_lower = stringr::str_to_lower(
-      .data$Description
+    Enriched = (
+      Best_term != "Not enriched" &
+      best_padj < 0.05 &
+      minus_log10_padj > 0
     ),
 
-    Pathway_group = dplyr::case_when(
-
-      # ------------------------------------------------------
-      # LESS DIFFERENTIATED
-      # ------------------------------------------------------
-
-      .data$Program == "Less differentiated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "^t cell differentiation$"
-        ) ~ "T-cell differentiation",
-
-      .data$Program == "Less differentiated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "^lymphocyte differentiation$"
-        ) ~ "Lymphocyte differentiation",
-
-      .data$Program == "Less differentiated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "regulation of.*differentiation"
-        ) ~ "Regulation of lymphocyte differentiation",
-
-      # ------------------------------------------------------
-      # T-CELL ACTIVATION
-      # ------------------------------------------------------
-
-      .data$Program == "T-cell activation" &
-        stringr::str_detect(
-          .data$description_lower,
-          "regulation of t cell activation"
-        ) ~ "Regulation of T-cell activation",
-
-      .data$Program == "T-cell activation" &
-        stringr::str_detect(
-          .data$description_lower,
-          "alpha-beta t cell activation"
-        ) ~ "Alpha-beta T-cell activation",
-
-      .data$Program == "T-cell activation" &
-        stringr::str_detect(
-          .data$description_lower,
-          "t cell receptor signaling|antigen receptor-mediated signaling"
-        ) ~ "TCR signaling",
-
-      .data$Program == "T-cell activation" &
-        stringr::str_detect(
-          .data$description_lower,
-          "lymphocyte activation"
-        ) ~ "Lymphocyte activation",
-
-      # ------------------------------------------------------
-      # MIGRATION AND ADHESION
-      # ------------------------------------------------------
-
-      .data$Program == "Migration and adhesion" &
-        stringr::str_detect(
-          .data$description_lower,
-          "t cell migration"
-        ) ~ "T-cell migration",
-
-      .data$Program == "Migration and adhesion" &
-        stringr::str_detect(
-          .data$description_lower,
-          "lymphocyte migration|leukocyte migration"
-        ) ~ "Leukocyte migration",
-
-      .data$Program == "Migration and adhesion" &
-        stringr::str_detect(
-          .data$description_lower,
-          "chemokine-mediated signaling"
-        ) ~ "Chemokine-mediated signaling",
-
-      .data$Program == "Migration and adhesion" &
-        stringr::str_detect(
-          .data$description_lower,
-          "lamellipodium"
-        ) ~ "Lamellipodium organization",
-
-      .data$Program == "Migration and adhesion" &
-        stringr::str_detect(
-          .data$description_lower,
-          "cell-cell adhesion|cell adhesion"
-        ) ~ "Leukocyte cell-cell adhesion",
-
-      .data$Program == "Migration and adhesion" &
-        stringr::str_detect(
-          .data$description_lower,
-          "chemotaxis"
-        ) ~ "Chemotaxis",
-
-      # ------------------------------------------------------
-      # TH17
-      #
-      # Estes termos já foram filtrados anteriormente para
-      # conter Il17a.
-      # ------------------------------------------------------
-
-      .data$Program == "Th17-associated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "inflammatory response"
-        ) ~ "Regulation of inflammatory response",
-
-      .data$Program == "Th17-associated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "interleukin-17|il-17"
-        ) ~ "IL-17-associated response",
-
-      .data$Program == "Th17-associated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "helper t cell differentiation"
-        ) ~ "Helper T-cell differentiation",
-
-      .data$Program == "Th17-associated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "leukocyte differentiation"
-        ) ~ "Regulation of leukocyte differentiation",
-
-      # ------------------------------------------------------
-      # TREG
-      # ------------------------------------------------------
-
-      .data$Program == "Treg-associated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "regulatory t cell differentiation"
-        ) ~ "Regulatory T-cell differentiation",
-
-      .data$Program == "Treg-associated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "immune tolerance"
-        ) ~ "Immune tolerance",
-
-      .data$Program == "Treg-associated" &
-        stringr::str_detect(
-          .data$description_lower,
-          "negative regulation of.*activation"
-        ) ~ "Negative regulation of T-cell activation",
-
-      TRUE ~ .data$Description
+    raw_weight = dplyr::if_else(
+      Enriched,
+      minus_log10_padj,
+      0
     )
-  )
-
-
-# ============================================================
-# 4. FUNÇÃO PARA UNIR GENES SEM REPETIÇÕES
-# ============================================================
-
-combine_unique_genes <- function(gene_strings) {
-
-  gene_strings <- gene_strings[
-    !is.na(gene_strings) &
-      nzchar(gene_strings)
-  ]
-
-  if (length(gene_strings) == 0) {
-    return("")
-  }
-
-  genes <- unlist(
-    strsplit(
-      gene_strings,
-      split = "/",
-      fixed = TRUE
-    ),
-    use.names = FALSE
-  )
-
-  genes <- trimws(genes)
-
-  genes <- unique(
-    genes[
-      !is.na(genes) &
-        nzchar(genes)
-    ]
-  )
-
-  paste(
-    genes,
-    collapse = "/"
-  )
-}
-
-
-# ============================================================
-# 5. RESUMIR CADA VIA DENTRO DE CADA PROGRAMA
-#
-# N_contrasts:
-#   número de contrastes nos quais a via apareceu
-#
-# Best_padj:
-#   melhor significância encontrada
-#
-# N_signature_genes:
-#   quantidade de genes únicos da assinatura
-# ============================================================
-
-pathway_summary <- go_for_alluvial |>
-  dplyr::group_by(
-    .data$Program,
-    .data$Pathway_group
   ) |>
-  dplyr::summarise(
+  dplyr::filter(
+    Enriched
+  )
 
-    N_contrasts = dplyr::n_distinct(
-      .data$Contrast
-    ),
 
-    Best_padj = min(
-      .data$p.adjust,
+
+alluvial_data <- alluvial_data |>
+  dplyr::group_by(Program) |>
+  dplyr::mutate(
+
+    program_total = sum(
+      raw_weight,
       na.rm = TRUE
     ),
 
-    Signature_genes = combine_unique_genes(
-      .data$Signature_genes
-    ),
-
-    N_signature_genes = {
-      gene_vector <- combine_unique_genes(
-        .data$Signature_genes
-      )
-
-      if (!nzchar(gene_vector)) {
-        0L
-      } else {
-        length(
-          strsplit(
-            gene_vector,
-            "/",
-            fixed = TRUE
-          )[[1]]
-        )
-      }
-    },
-
-    Contrasts = paste(
-      sort(
-        unique(
-          as.character(.data$Contrast)
-        )
-      ),
-      collapse = "; "
-    ),
-
-    .groups = "drop"
-  ) |>
-  dplyr::mutate(
-
-    minus_log10_padj = -log10(
-      pmax(
-        .data$Best_padj,
-        .Machine$double.xmin
-      )
+    Flow_weight = dplyr::if_else(
+      program_total > 0,
+      raw_weight / program_total,
+      0
     )
-  )
-
-
-# ============================================================
-# 6. SELECIONAR AS VIAS MAIS REPRESENTATIVAS
-#
-# Prioridade:
-# 1. maior número de contrastes
-# 2. maior número de genes da assinatura
-# 3. menor p.adjust
-#
-# Até 3 vias por programa
-# ============================================================
-
-n_pathways_per_program <- 3
-
-pathway_selected <- pathway_summary |>
-  dplyr::filter(
-    .data$N_signature_genes > 0,
-    !is.na(.data$Best_padj),
-    .data$Best_padj < 0.05
-  ) |>
-  dplyr::group_by(
-    .data$Program
-  ) |>
-  dplyr::arrange(
-    dplyr::desc(.data$N_contrasts),
-    dplyr::desc(.data$N_signature_genes),
-    .data$Best_padj,
-    .by_group = TRUE
-  ) |>
-  dplyr::slice_head(
-    n = n_pathways_per_program
   ) |>
   dplyr::ungroup()
 
 
-if (nrow(pathway_selected) == 0) {
-  stop(
-    "Nenhuma via permaneceu para o gráfico aluvial."
-  )
-}
 
-
-# ============================================================
-# 7. CONFERIR VIAS SELECIONADAS
-# ============================================================
-
-print(
-  pathway_selected |>
-    dplyr::select(
-      dplyr::all_of(
-        c(
-          "Program",
-          "Pathway_group",
-          "N_contrasts",
-          "N_signature_genes",
-          "Signature_genes",
-          "Best_padj",
-          "Contrasts"
-        )
-      )
-    ) |>
-    dplyr::arrange(
-      factor(
-        .data$Program,
-        levels = program_levels
-      ),
-      dplyr::desc(.data$N_contrasts),
-      .data$Best_padj
-    ),
-  n = Inf
-)
-
-
-# ============================================================
-# 8. PESO DOS FLUXOS
-#
-# O peso principal será o número de contrastes em que a via
-# apareceu.
-#
-# Para evitar fluxos de peso zero, o mínimo é 1.
-# ============================================================
-
-alluvial_df <- pathway_selected |>
-  dplyr::mutate(
-
-    Flow_weight = pmax(
-      .data$N_contrasts,
-      1
-    ),
-
-    Program = factor(
-      .data$Program,
-      levels = program_levels
-    ),
-
-    Pathway_label = stringr::str_wrap(
-      .data$Pathway_group,
-      width = 32
-    )
-  )
-
-
-# ============================================================
-# 9. PALETA DOS PROGRAMAS
-# ============================================================
-
-program_colors <- c(
-  "Less differentiated" = "#F06A8A",
-  "T-cell activation" = "#D44B72",
-  "Migration and adhesion" = "#9B5AA5",
-  "Th17-associated" = "#7B3294",
-  "Treg-associated" = "#4C2A78"
-)
-
-
-# ============================================================
-# 10. GRÁFICO ALUVIAL
-#
-# Esquerda:
-#   programas usados no eixo Y do heatmap
-#
-# Direita:
-#   vias GO selecionadas
-# ============================================================
-
-p_program_alluvial <- ggplot2::ggplot(
-  alluvial_df,
-  ggplot2::aes(
-    axis1 = .data$Program,
-    axis2 = .data$Pathway_label,
-    y = .data$Flow_weight
-  )
-) +
-
-  ggalluvial::geom_alluvium(
-    ggplot2::aes(
-      fill = .data$Program
-    ),
-    width = 0.14,
-    alpha = 0.72,
-    knot.pos = 0.38,
-    color = NA
-  ) +
-
-  ggalluvial::geom_stratum(
-    width = 0.16,
-    fill = "white",
-    color = "grey40",
-    linewidth = 0.4
-  ) +
-
-  ggplot2::geom_text(
-    stat = "stratum",
-    ggplot2::aes(
-      label = after_stat(stratum)
-    ),
-    size = 3.2,
-    color = "black",
-    lineheight = 0.9
-  ) +
-
-  ggplot2::scale_x_discrete(
-    limits = c(
-      "Transcriptional program",
-      "Representative GO pathway"
-    ),
-    expand = c(
-      0.08,
-      0.08
-    )
-  ) +
-
-  ggplot2::scale_fill_manual(
-    values = program_colors,
-    drop = FALSE
-  ) +
-
-  ggplot2::guides(
-    fill = "none"
-  ) +
-
-  ggplot2::labs(
-    x = NULL,
-    y = NULL
-  ) +
-
-  ggplot2::theme_void(
-    base_size = 12
-  ) +
-
-  ggplot2::theme(
-
-    axis.text.x = ggplot2::element_text(
-      face = "bold",
-      color = "black",
-      size = 11,
-      margin = ggplot2::margin(
-        t = 8
-      )
-    ),
-
-    plot.margin = ggplot2::margin(
-      t = 5,
-      r = 20,
-      b = 5,
-      l = 5
-    )
-  )
-
-print(p_program_alluvial)
-
-
-ggplot2::ggsave(
-  filename = "Gp_program_alluvial.tiff",
-  plot = p_program_alluvial,
-  device = ragg::agg_tiff,
-  width = 15,
-  height = 9,
-  units = "in",
-  res = 600,
-  compression = "lzw",
-  background = "white"
-)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ============================================================
-# ALUVIAL -> HEATMAP
-#
-# Esquerda:
-#   vias GO representativas
-#
-# Centro:
-#   programas transcricionais
-#
-# Direita:
-#   heatmap dos contrastes
-#
-# Requer:
-#   pathway_selected
-#   program_summary_complete
-# ============================================================
-
-
-# ============================================================
-# 0. PACOTES
-# ============================================================
-
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(ggplot2)
-library(ggalluvial)
-library(patchwork)
-library(ragg)
-
-
-# ============================================================
-# 1. ORDEM DOS PROGRAMAS
-#
-# Esta mesma ordem será usada no aluvial e no heatmap.
-# ============================================================
-
-program_levels <- c(
-  "Less differentiated",
-  "T-cell activation",
-  "Migration and adhesion",
-  "Th17-associated",
-  "Treg-associated"
-)
-
-contrast_levels <- c(
-  "PBS vs Naive",
-  "IgG vs PBS",
-  "Anti-PD-1 vs PBS",
-  "Anti-CTLA-4 vs PBS"
-)
-
-
-# ============================================================
-# 2. VERIFICAR OBJETOS
-# ============================================================
-
-if (!exists("pathway_selected")) {
-  stop(
-    "O objeto 'pathway_selected' não foi encontrado."
-  )
-}
-
-if (!exists("program_summary_complete")) {
-  stop(
-    "O objeto 'program_summary_complete' não foi encontrado."
-  )
-}
-
-
-# ============================================================
-# 3. PREPARAR DADOS DO ALUVIAL
-#
-# IMPORTANTE:
-# O peso é normalizado dentro de cada programa.
-#
-# Assim, cada programa terá peso total igual a 1.
-# Isso faz com que os cinco estratos tenham a mesma altura,
-# permitindo alinhamento com as cinco linhas do heatmap.
-# ============================================================
-
-alluvial_df <- pathway_selected |>
-  dplyr::mutate(
-
-    Program = as.character(
-      .data$Program
-    ),
-
-    Pathway_group = as.character(
-      .data$Pathway_group
-    ),
-
-    # Peso biológico bruto:
-    # recorrência entre contrastes × genes da assinatura
-    Raw_weight = pmax(
-      .data$N_contrasts,
-      1
-    ) *
-      pmax(
-        .data$N_signature_genes,
-        1
-      )
-  ) |>
-  dplyr::group_by(
-    .data$Program
-  ) |>
-  dplyr::mutate(
-
-    # Cada programa soma exatamente 1
-    Flow_weight = .data$Raw_weight /
-      sum(
-        .data$Raw_weight,
-        na.rm = TRUE
-      )
-  ) |>
-  dplyr::ungroup() |>
-  dplyr::mutate(
-
-    # Ordem vertical
-    Program = factor(
-      .data$Program,
-      levels = rev(program_levels)
-    ),
-
-    Pathway_label = stringr::str_wrap(
-      .data$Pathway_group,
-      width = 30
-    )
-  )
-
-
-# Verificar se cada programa soma 1
-flow_check <- alluvial_df |>
-  dplyr::group_by(
-    .data$Program
-  ) |>
+alluvial_data |>
+  dplyr::group_by(Program) |>
   dplyr::summarise(
-    Total_weight = sum(
-      .data$Flow_weight
-    ),
+    Total_node_width = sum(Flow_weight),
     .groups = "drop"
   )
 
-print(flow_check)
 
-
-# ============================================================
-# 4. PALETA DOS PROGRAMAS
-# ============================================================
 
 program_colors <- c(
-  "Less differentiated" = "#F06A8A",
-  "T-cell activation" = "#D34A73",
-  "Migration and adhesion" = "#A35AA5",
-  "Th17-associated" = "#7B3294",
-  "Treg-associated" = "#4C2A78"
+  "Less differentiated"   = "#D99B7F",
+  "T-cell activation"     = "#A56F63",
+  "Migration and adhesion" = "#464858",
+  "Th17-associated"       = "#618764",
+  "Treg-associated"       = "#9CB080"
+)
+
+contrast_colors <- c(
+  "PBS vs Naive"        = "#6F7F5A",
+  "IgG vs PBS"          = "#4C2A78",
+  "Anti-PD-1 vs PBS"    = "#28331A",
+  "Anti-CTLA-4 vs PBS"  = "#9BC5F3"
 )
 
 
-# ============================================================
-# 5. GRÁFICO ALUVIAL
-#
-# axis1 = vias GO
-# axis2 = programas
-#
-# O programa fica na borda direita para conectar ao heatmap.
-# ============================================================
+gap_factor <- 0.80
 
-p_alluvial_left <- ggplot2::ggplot(
-  alluvial_df,
-  ggplot2::aes(
-    axis1 = .data$Pathway_label,
-    axis2 = .data$Program,
-    y = .data$Flow_weight
+alluvial_data <- alluvial_data |>
+  dplyr::mutate(
+    flow_weight_plot = Flow_weight * gap_factor
   )
-) +
 
-  ggalluvial::geom_alluvium(
-    ggplot2::aes(
-      fill = .data$Program
-    ),
-    width = 0.12,
-    alpha = 0.72,
+
+p_program_alluvial <- ggplot(
+  alluvial_data,
+  aes(axis1 = Best_term,axis2 = Program,y = Flow_weight)) +
+  geom_alluvium(
+    aes(fill = Program),
+    width = 0.10,
+    alpha = 0.75,
     knot.pos = 0.45,
     color = NA
   ) +
-
-  ggalluvial::geom_stratum(
-    width = 0.13,
+  geom_stratum(
+    width = 0.10,
     fill = "white",
-    color = "grey45",
-    linewidth = 0.4
-  ) +
-
-  # Rótulos das vias e programas
-  ggplot2::geom_text(
-    stat = "stratum",
-    ggplot2::aes(
-      label = after_stat(stratum)
-    ),
-    size = 3,
     color = "black",
-    lineheight = 0.9
+    linewidth = 0.6
   ) +
-
-  ggplot2::scale_x_discrete(
-    limits = c(
-      "Representative GO pathways",
-      "Transcriptional programs"
-    ),
-    expand = c(
-      0,
-      0
-    )
+  theme_minimal(base_size = 16) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid = element_blank()) +
+  scale_x_discrete(limits = c("Description", "Gene"), expand = c(.1, .1)) +
+  labs(x = "", y = "") +
+  theme(
+    legend.position = 'none'
   ) +
+  scale_fill_manual(values = program_colors)
 
-  ggplot2::scale_y_continuous(
-    expand = c(
-      0,
-      0
-    )
+
+
+pb = ggplot_build(p_program_alluvial)
+strata_data = pb$data[[2]] 
+#tiff("plots_lnc/plots_liver/river.tiff",units = 'in', width = 6.5, height = 5, res = 300)
+p_program_alluvial = p_program_alluvial + 
+  geom_text_repel(
+    data = strata_data |> filter(x == 1),
+    aes(x = x, y = y, label = stratum),
+    inherit.aes = FALSE,
+    force = 1,
+    hjust = 1,
+    nudge_x = -.5,
+    min.segment.length = .5,
+    segment.curvature = .4,
+    box.padding = unit(.02, "lines"),
+    direction = "y",
+    size = 4,
+    segment.size = .2
   ) +
-
-  ggplot2::scale_fill_manual(
-    values = program_colors,
-    drop = FALSE
-  ) +
-
-  ggplot2::guides(
-    fill = "none"
-  ) +
-
-  ggplot2::labs(
-    x = NULL,
-    y = NULL
-  ) +
-
-  ggplot2::coord_cartesian(
-    clip = "off"
-  ) +
-
-  ggplot2::theme_void(
-    base_size = 18
-  ) +
-
-  ggplot2::theme(
-
-    axis.text.x = ggplot2::element_text(
-      color = "black",
-      size = 10,
-      margin = ggplot2::margin(
-        t = 8
-      )
-    ),
-
-    plot.margin = ggplot2::margin(
-      t = 5,
-      r = 0,
-      b = 5,
-      l = 90
-    )
-  )
-
-print(p_alluvial_left)
+  geom_text_repel(
+    data = strata_data |> filter(x == 2),
+    aes(x = x, y = y, label = stratum),
+    inherit.aes = FALSE,
+    force = 1,
+    nudge_x = .6,
+    #nudge_y = 2,
+    min.segment.length = .5,
+    segment.curvature = .4,
+    direction = "y",
+    box.padding = unit(.02, "lines"),
+    size = 3.5,
+    segment.size = .52,
+    max.overlaps = getOption("ggrepel.max.overlaps", default = 1000)
+  ) 
 
 
-
-
-
-
-
-
-# ============================================================
-# 6. PREPARAR HEATMAP COM A MESMA ORDEM
-# ============================================================
-
-heatmap_df <- program_summary_complete |>
-  dplyr::mutate(
-
-    Program = factor(
-      as.character(.data$Program),
-      levels = rev(program_levels)
-    ),
-
-    Contrast = factor(
-      as.character(.data$Contrast),
-      levels = contrast_levels
-    )
-  )
-
-
-# ============================================================
-# 7. HEATMAP ALINHADO
-#
-# Removemos os nomes dos programas do eixo Y porque eles já
-# aparecem no final do aluvial.
-# ============================================================
-
-p_heatmap_right <- ggplot2::ggplot(
-  heatmap_df,
-  ggplot2::aes(
-    x = .data$Contrast,
-    y = .data$Program,
-    fill = .data$minus_log10_padj
-  )
-) +
-
-  ggplot2::geom_tile(
-    color = "white",
-    linewidth = 1
-  ) +
-
-  ggplot2::scale_fill_viridis_c(
-    name = expression(
-      -log[10]("adjusted p-value")
-    ),
-    option = "magma"
-  ) +
-
-  ggplot2::scale_x_discrete(
-    expand = c(
-      0,
-      0
-    )
-  ) +
-
-  ggplot2::scale_y_discrete(
-    expand = c(
-      0,
-      0
-    )
-  ) +
-
-  ggplot2::labs(
-    x = NULL,
-    y = NULL
-  ) +
-
-  ggplot2::theme_classic(
-    base_size = 12
-  ) +
-
-  ggplot2::theme(
-
-    # Programas já estão escritos no aluvial
-    axis.text.y = ggplot2::element_blank(),
-    axis.ticks.y = ggplot2::element_blank(),
-
-    axis.text.x = ggplot2::element_text(
-      angle = 42,
-      hjust = 1,
-      vjust = 1,
-      face = "bold",
-      color = "black"
-    ),
-
-    axis.ticks.x = ggplot2::element_blank(),
-
-    panel.border = ggplot2::element_rect(
-      color = "grey30",
-      fill = NA,
-      linewidth = 0.6
-    ),
-
-    legend.position = "right",
-
-    # Zero espaço na margem esquerda
-    plot.margin = ggplot2::margin(
-      t = 5,
-      r = 5,
-      b = 5,
-      l = 0
-    )
-  )
-
-print(p_heatmap_right)
-
-
-
-# ============================================================
-# 8. COMBINAR ALUVIAL + HEATMAP
-# ============================================================
-
-p_alluvial_heatmap <- p_alluvial_left +
-  p_program_heatmap +
-  patchwork::plot_layout(
-    ncol = 2,
-    widths = c(
-      1.65,
-      1
-    ),
-    guides = "collect"
-  ) &
-  ggplot2::theme(
-    legend.position = "right"
-  )
-
-print(p_alluvial_heatmap)
-
-
-
-ggsave(
-  filename = "./p_alluvial_heatmap.tiff",
-  plot = p_alluvial_heatmap,
-  device = ragg::agg_tiff,
-  width = 18,
-  height = 6,
-  units = "in",
-  res = 600,
-  compression = "lzw",
-  background = "white"
-)
+p_program_alluvial
