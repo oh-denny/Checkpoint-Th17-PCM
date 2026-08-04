@@ -230,22 +230,32 @@ saveRDS(cds_condition, "./data/cds_condition_PD1_pbs.rds")
 saveRDS(cds_condition, "./data/cds_condition_CTLA4_pbs.rds")
 
 
+cds_condition_pbs = readRDS("./data/cds_condition_PBS_naive.rds")
+cds_condition_igg = readRDS("./data/cds_condition_IGG_pbs.rds")
+cds_condition_pd1 = readRDS("./data/cds_condition_PD1_pbs.rds")
+cds_condition_ctl = readRDS("./data/cds_condition_CTLA4_pbs.rds")
+
+
+
 p_pseudotime <- monocle::plot_cell_trajectory(
-  cds_condition,
+  cds_condition_ctl,
   color_by = "Pseudotime"
 ) +
   scale_color_viridis_c(option = "magma", direction = 1) +
-  theme_classic(base_size = 14) +
-  labs(color = "Pseudotime")
+  theme_classic(base_size = 20) +
+  labs(color = "Pseudotime") +
+  theme(
+    legend.position = 'bottom'
+  )
 
 p_pseudotime
 
 ggsave(
-  filename = "igg_pbs.tiff",
+  filename = "ctl_pbs.tiff",
   plot = p_pseudotime,
   device = ragg::agg_tiff,
   width = 6,
-  height = 5,
+  height = 7,
   units = "in",
   res = 600,
   compression = "lzw",
@@ -254,22 +264,25 @@ ggsave(
 
 
 p_state <- monocle::plot_cell_trajectory(
-  cds_condition,
+  cds_condition_ctl,
   color_by = "State"
 ) +
   #scale_color_manual(values = c("Healthy" = "#1F5C5C", "CD" = "#E18487")) +
-  theme_classic(base_size = 14) +
-  labs(color = "State")
+  theme_classic(base_size = 20) +
+  labs(color = "State") +
+   theme(
+    legend.position = 'bottom'
+  )
 
 p_state
 
 
 ggsave(
-  filename = "igg_pbs_p_state.tiff",
+  filename = "ctl_pbs_p_state.tiff",
   plot = p_state,
   device = ragg::agg_tiff,
   width = 6,
-  height = 5,
+  height = 8,
   units = "in",
   res = 600,
   compression = "lzw",
@@ -3137,6 +3150,9 @@ program_summary_complete <- tidyr::expand_grid(
 #   genes da assinatura que sustentam o programa
 # ============================================================
 
+
+program_summary_complete = program_summary_complete |> subset( Program != 'Treg-associated')
+
 p_program_heatmap <- ggplot2::ggplot(
 
   program_summary_complete,
@@ -3189,9 +3205,7 @@ p_program_heatmap <- ggplot2::ggplot(
       color = "black"
     ),
 
-    axis.text.y = ggplot2::element_text(
-      color = "black"
-    ),
+    axis.text.y = ggplot2::element_blank(),
 
     axis.ticks = ggplot2::element_blank(),
 
@@ -3213,11 +3227,10 @@ print(p_program_heatmap)
 # ============================================================
 
 ggplot2::ggsave(
-
   filename = "GO_programs_gene_supported_heatmap.tiff",
   plot = p_program_heatmap,
   device = ragg::agg_tiff,
-  width = 8.5,
+  width = 6.5,
   height = 5.2,
   units = "in",
   res = 600,
@@ -3331,6 +3344,8 @@ alluvial_data <- alluvial_data |>
     flow_weight_plot = Flow_weight * gap_factor
   )
 
+alluvial_data$Program = factor(alluvial_data$Program, levels = c("Th17-associated","Migration and adhesion", "T-cell activation" ,"Less differentiated"))
+
 
 p_program_alluvial <- ggplot(
   alluvial_data,
@@ -3363,7 +3378,7 @@ p_program_alluvial <- ggplot(
 
 pb = ggplot_build(p_program_alluvial)
 strata_data = pb$data[[2]] 
-#tiff("plots_lnc/plots_liver/river.tiff",units = 'in', width = 6.5, height = 5, res = 300)
+
 p_program_alluvial = p_program_alluvial + 
   geom_text_repel(
     data = strata_data |> filter(x == 1),
@@ -3371,13 +3386,14 @@ p_program_alluvial = p_program_alluvial +
     inherit.aes = FALSE,
     force = 1,
     hjust = 1,
-    nudge_x = -.5,
-    min.segment.length = .5,
-    segment.curvature = .4,
+    nudge_x = -1,
+    min.segment.length = 0,
+    segment.curvature = 0,
     box.padding = unit(.02, "lines"),
     direction = "y",
-    size = 4,
-    segment.size = .2
+    size = 0,
+    segment.size = 0,
+    color = 'white'
   ) +
   geom_text_repel(
     data = strata_data |> filter(x == 2),
@@ -3385,15 +3401,21 @@ p_program_alluvial = p_program_alluvial +
     inherit.aes = FALSE,
     force = 1,
     nudge_x = .6,
+    color = 'white',
     #nudge_y = 2,
-    min.segment.length = .5,
-    segment.curvature = .4,
+    min.segment.length = 0,
+    segment.curvature = 0,
     direction = "y",
     box.padding = unit(.02, "lines"),
-    size = 3.5,
-    segment.size = .52,
+    size = 0,
+    segment.size = 00,
     max.overlaps = getOption("ggrepel.max.overlaps", default = 1000)
   ) 
 
 
+tiff("alluvial.tiff",units = 'in', width = 6, height = 5, res = 300)
 p_program_alluvial
+dev.off()
+
+
+
