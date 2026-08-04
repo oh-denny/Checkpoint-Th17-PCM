@@ -11,8 +11,8 @@ group_colors = c(
 ) 
 
 SC_obj_sub = t_cells_CD4
-DefaultAssay(SC_obj_sub) <- "RNA"
-Idents(SC_obj_sub) <- "seurat_clusters"
+DefaultAssay(SC_obj_sub) = "RNA"
+Idents(SC_obj_sub) = "seurat_clusters"
 
 counts_matrix = GetAssayData(
   SC_obj_sub,
