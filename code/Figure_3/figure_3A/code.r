@@ -47,14 +47,15 @@ t_cells = t_cells |>
     verbose = FALSE
   )
 
-tiff("DIMT_supp.tiff",units = 'in', width = 7.5, height = 6, res = 300)
+tiff("DIMT_supp_per group.tiff",units = 'in', width = 7.5, height = 6, res = 300)
 DimPlot(
   t_cells,
   reduction = "umap",
   group.by = "seurat_clusters",
   label = TRUE,
   repel = TRUE,
-  pt.size = 0.6
+  pt.size = 0.6,
+  split.by = 'groups'
 ) +
   NoLegend() +
   theme_classic() +
