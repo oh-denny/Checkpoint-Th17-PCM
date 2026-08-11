@@ -12,7 +12,7 @@ dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 t_cells = subset(
   combined_data_integrated,
-  subset = cluster_id %in% c("1", "3", "10")
+  subset = RNA_snn_res.0.2 %in% c("1", "3", "10")
 )
 
 DefaultAssay(t_cells) = "RNA"
@@ -71,7 +71,7 @@ dev.off()
 
 t_cells_CD4 = subset(
   t_cells,
-  subset = !cluster_id %in% c("1")
+  subset = !seurat_clusters %in% c("1")
 )
 
 DefaultAssay(t_cells_CD4) = "RNA"
@@ -116,6 +116,8 @@ cols = c(
   "5" = "#A5927B"
 )
 
+
+saveRDS(t_cells_CD4,  "./data/t_cells_CD4.rds")
 
 tiff("DIMT.tiff",units = 'in', width = 7.5, height = 6, res = 300)
 DimPlot(
