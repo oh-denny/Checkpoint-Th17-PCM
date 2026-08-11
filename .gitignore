@@ -1,0 +1,9 @@
+
+
+*.png
+*/CFU/
+*.pdf
+*.csv
+.DS_Store
+*.rds
+*.tiff

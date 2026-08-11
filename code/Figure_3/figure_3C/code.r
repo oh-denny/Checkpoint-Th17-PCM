@@ -1,4 +1,4 @@
-
+source("functions/functions.r")
 source("functions/patch/patch.r")
 patch_monocle2()
 
@@ -226,3 +226,41 @@ ggsave(
   background = "white"
 )
 
+
+
+# Supp table
+library(writexl)
+
+max_len <- max(
+  length(genes_infection),
+  length(genes_pd1),
+  length(genes_ctla4),
+  length(genes_igg)
+)
+
+genes_table <- data.frame(
+  Infection = c(
+    genes_infection,
+    rep(NA, max_len - length(genes_infection))
+  ),
+  
+  anti_PD1 = c(
+    genes_pd1,
+    rep(NA, max_len - length(genes_pd1))
+  ),
+  
+  anti_CTLA4 = c(
+    genes_ctla4,
+    rep(NA, max_len - length(genes_ctla4))
+  ),
+  
+  IgG = c(
+    genes_igg,
+    rep(NA, max_len - length(genes_igg))
+  )
+)
+
+openxlsx::write.xlsx(
+  genes_table,
+  "~/Desktop/genes_trajectory.xlsx"
+)
