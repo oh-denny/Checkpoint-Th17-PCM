@@ -524,3 +524,535 @@ p_dot <- DotPlot(
     size = "Percent expressed"
   ) +
   theme_classic(base_size = 11)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+library(Seurat)
+library(monocle)
+library(dplyr)
+library(ggplot2)
+
+# ============================================================
+# 1. Função para extrair Early, Intermediate e Late
+# ============================================================
+
+extract_trajectory_stage <- function(
+    cds,
+    group_name,
+    group_label,
+    reverse_pseudotime = FALSE
+) {
+
+  metadata <- pData(cds) |>
+    as.data.frame() |>
+    tibble::rownames_to_column("cell") |>
+    dplyr::filter(
+      groups == group_name,
+      !is.na(Pseudotime)
+    )
+
+  if (nrow(metadata) == 0) {
+    stop(
+      "Nenhuma célula encontrada para o grupo '",
+      group_name,
+      "' no CDS informado."
+    )
+  }
+
+  if (reverse_pseudotime) {
+    metadata$Pseudotime_use <-
+      max(metadata$Pseudotime, na.rm = TRUE) -
+      metadata$Pseudotime
+  } else {
+    metadata$Pseudotime_use <- metadata$Pseudotime
+  }
+
+  # Dividir o pseudotempo em três partes com números
+  # aproximadamente semelhantes de células
+  metadata <- metadata |>
+    dplyr::mutate(
+      Trajectory_stage = dplyr::ntile(
+        Pseudotime_use,
+        3
+      ),
+
+      Trajectory_stage = dplyr::case_when(
+        Trajectory_stage == 1 ~ "Early",
+        Trajectory_stage == 2 ~ "Intermediate",
+        Trajectory_stage == 3 ~ "Late"
+      ),
+
+      Trajectory_State = paste(
+        group_label,
+        Trajectory_stage,
+        sep = " | "
+      )
+    )
+
+  metadata |>
+    dplyr::select(
+      cell,
+      Trajectory_State,
+      Trajectory_stage,
+      Pseudotime = Pseudotime_use
+    )
+}
+
+
+
+
+states_pbs <- extract_trajectory_stage(
+  cds = cds_condition_PBS_naive,
+  group_name = "pbs",
+  group_label = "PBS",
+  reverse_pseudotime = FALSE
+)
+
+states_igg <- extract_trajectory_stage(
+  cds = cds_condition_IGG_pbs,
+  group_name = "igg",
+  group_label = "IgG",
+  reverse_pseudotime = FALSE
+)
+
+states_pd1 <- extract_trajectory_stage(
+  cds = cds_condition_PD1_pbs,
+  group_name = "antipd1",
+  group_label = "anti-PD-1",
+  reverse_pseudotime = FALSE
+)
+
+states_ctla4 <- extract_trajectory_stage(
+  cds = cds_condition_CTLA4_pbs,
+  group_name = "antictla4",
+  group_label = "anti-CTLA-4",
+  reverse_pseudotime = FALSE
+)
+
+trajectory_metadata <- bind_rows(
+  states_pbs,
+  states_igg,
+  states_pd1,
+  states_ctla4
+)
+
+
+
+
+# ============================================================
+# Transferir os estados para o Seurat de forma robusta
+# ============================================================
+
+# Garantir que cada célula apareça apenas uma vez
+duplicated_cells <- trajectory_metadata$cell[
+  duplicated(trajectory_metadata$cell)
+]
+
+if (length(duplicated_cells) > 0) {
+  stop(
+    "Existem células duplicadas em trajectory_metadata: ",
+    paste(head(unique(duplicated_cells), 10), collapse = ", ")
+  )
+}
+
+# Ordem das células no objeto Seurat
+seurat_cells <- colnames(t_cells_CD4)
+
+# Localizar cada célula do Seurat em trajectory_metadata
+cell_match <- match(
+  seurat_cells,
+  trajectory_metadata$cell
+)
+
+# Criar metadado com exatamente a mesma ordem do Seurat
+trajectory_metadata_seurat <- data.frame(
+
+  Trajectory_State = trajectory_metadata$Trajectory_State[
+    cell_match
+  ],
+
+  Trajectory_stage = trajectory_metadata$Trajectory_stage[
+    cell_match
+  ],
+
+  Trajectory_Pseudotime = trajectory_metadata$Pseudotime[
+    cell_match
+  ],
+
+  row.names = seurat_cells,
+  stringsAsFactors = FALSE
+)
+
+# Remover colunas antigas apenas quando existirem
+columns_to_remove <- intersect(
+  c(
+    "Trajectory_State",
+    "Trajectory_stage",
+    "Trajectory_Pseudotime"
+  ),
+  colnames(t_cells_CD4@meta.data)
+)
+
+if (length(columns_to_remove) > 0) {
+  t_cells_CD4@meta.data[
+    ,
+    columns_to_remove
+  ] <- NULL
+}
+
+# Adicionar o novo metadado
+t_cells_CD4 <- AddMetaData(
+  object = t_cells_CD4,
+  metadata = trajectory_metadata_seurat
+)
+
+
+
+
+trajectory_state_levels <- c(
+  "PBS | Early",
+  "PBS | Intermediate",
+  "PBS | Late",
+
+  "IgG | Early",
+  "IgG | Intermediate",
+  "IgG | Late",
+
+  "anti-PD-1 | Early",
+  "anti-PD-1 | Intermediate",
+  "anti-PD-1 | Late",
+
+  "anti-CTLA-4 | Early",
+  "anti-CTLA-4 | Intermediate",
+  "anti-CTLA-4 | Late"
+)
+
+cells_trajectory <- rownames(
+  t_cells_CD4@meta.data
+)[
+  !is.na(t_cells_CD4$Trajectory_State)
+]
+
+
+t_cells_CD4$Trajectory_State <- factor(
+  t_cells_CD4$Trajectory_State,
+  levels = trajectory_state_levels
+)
+
+trajectory_cells <- subset(
+  t_cells_CD4,
+  cells = cells_trajectory
+)
+
+
+table(
+  trajectory_cells$Trajectory_State,
+  useNA = "ifany"
+)
+
+
+
+
+genes_trajectory <- list(
+
+  "Less differentiated" = c(
+    "Lef1",
+    "Klf3",
+    "Sell",
+    "Foxp1",
+    "S1pr1",
+    "Klf2",
+    "Ccr7",
+    "Tob1",
+    "Tcf7",
+    "Tob2",
+    "Zfp36l2",
+    "Btg2"
+  ),
+
+  "T-cell activation" = c(
+    "Tnfrsf1b",
+    "Icos",
+    "Cyld",
+    "Nr4a1",
+    "Itk",
+    "Tnfaip3",
+    "Tnfsf8",
+    "Cd28",
+    "Zap70",
+    "Lat"
+  ),
+
+  "Migration" = c(
+    "Rgs1",
+    "Cxcr4",
+    "Ccr2",
+    "Spn",
+    "Adam8",
+    "Itgb1",
+    "Itga4",
+    "S1pr4",
+    "Rac2",
+    "Ripor2",
+    "Cxcr6",
+    "S100a4",
+    "Ccl5"
+  ),
+
+  "Th17" = c(
+    "Il17a",
+    "Maf",
+    "Hif1a",
+    "Bhlhe40"
+  ),
+
+  "Treg" = c(
+    "Ctla4",
+    "Il2ra",
+    "Tmem176a",
+    "Tmem176b",
+    "Tgfbr2"
+  )
+)
+
+
+
+all_dotplot_genes <- unlist(
+  genes_trajectory,
+  use.names = FALSE
+)
+
+duplicated_dotplot_genes <- unique(
+  all_dotplot_genes[
+    duplicated(all_dotplot_genes)
+  ]
+)
+
+duplicated_dotplot_genes
+
+
+
+gene_frequency <- table(all_dotplot_genes)
+
+gene_frequency[
+  gene_frequency > 1
+]
+
+
+genes_trajectory_present <- lapply(
+  genes_trajectory,
+  function(genes) {
+    intersect(
+      genes,
+      rownames(trajectory_cells)
+    )
+  }
+)
+
+
+
+genes_present_flat <- unlist(
+  genes_trajectory_present,
+  use.names = FALSE
+)
+
+if (anyDuplicated(genes_present_flat) > 0) {
+
+  duplicated_genes <- unique(
+    genes_present_flat[
+      duplicated(genes_present_flat)
+    ]
+  )
+
+  stop(
+    "Genes repetidos entre classificações: ",
+    paste(duplicated_genes, collapse = ", ")
+  )
+}
+
+trajectory_cells$Trajectory_Group <- sub(
+  " \\| .*",
+  "",
+  as.character(trajectory_cells$Trajectory_State)
+)
+
+trajectory_cells$Trajectory_Stage <- sub(
+  ".*\\| ",
+  "",
+  as.character(trajectory_cells$Trajectory_State)
+)
+
+trajectory_cells$Trajectory_Group <- factor(
+  trajectory_cells$Trajectory_Group,
+  levels = c(
+    "PBS",
+    "IgG",
+    "anti-PD-1",
+    "anti-CTLA-4"
+  )
+)
+
+trajectory_cells$Trajectory_Stage <- factor(
+  trajectory_cells$Trajectory_Stage,
+  levels = c(
+    "Early",
+    "Intermediate",
+    "Late"
+  )
+)
+
+
+DefaultAssay(trajectory_cells) <- "RNA"
+
+p_dot <- DotPlot(
+  object = trajectory_cells,
+  features = genes_trajectory_present,
+  group.by = "Trajectory_State",
+  assay = "RNA",
+  dot.scale = 9,
+  scale = TRUE
+)
+
+
+p_dot$data <- p_dot$data |>
+  dplyr::filter(
+    avg.exp.scaled > .5
+  )
+
+
+p_dot$data <- p_dot$data |>
+  dplyr::mutate(
+    Trajectory_Group = sub(
+      " \\| .*",
+      "",
+      as.character(id)
+    ),
+    Trajectory_Stage = sub(
+      ".*\\| ",
+      "",
+      as.character(id)
+    ),
+    Trajectory_Group = factor(
+      Trajectory_Group,
+      levels = c(
+        "PBS",
+        "IgG",
+        "anti-PD-1",
+        "anti-CTLA-4"
+      )
+    ),
+    Trajectory_Stage = factor(
+      Trajectory_Stage,
+      levels = c(
+        "Late",
+        "Intermediate",
+        "Early"
+      )
+    )
+  )
+
+
+
+p_dot <- p_dot +
+  aes(y = Trajectory_Stage) +
+  facet_grid(
+    rows = vars(Trajectory_Group),
+    cols = vars(feature.groups),
+    scales = "free",
+    space = "free",
+    switch = "y"
+  ) +
+  scale_size(
+    range = c(0.5, 13),
+    limits = c(0, 100),
+    breaks = c(0, 25, 50, 75, 100)
+  ) +
+  scale_color_gradient(
+    low = "white",
+    high = "#B2182B",
+    limits = c(1, 2),
+    breaks = c(1, 1.5, 2),
+    oob = scales::squish,
+    name = "Average Expression"
+  ) +
+  labs(
+    x = NULL,
+    y = NULL,
+    color = "Average Expression",
+    size = "Percent Expressed"
+  ) +
+  theme_classic(base_size = 15) +
+  theme(
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1,
+      vjust = 1,
+      color = "black"
+    ),
+    axis.text.y = element_text(
+      face = "italic",
+      color = "black"
+    ),
+    strip.background = element_rect(
+      fill = "white",
+      color = "black"
+    ),
+    strip.text.x = element_text(
+      face = "bold"
+    ),
+    strip.text.y.left = element_text(
+      face = "bold",
+      angle = 0
+    ),
+    strip.placement = "outside",
+    panel.spacing.y = grid::unit(
+      0.8,
+      "lines"
+    ),
+    legend.position = "right"
+  )
+
+p_dot
+
+
+ggsave(
+  filename = "./p_dot.tiff",
+  plot = p_dot,
+  device = ragg::agg_tiff,
+  width = 20,
+  height = 4,
+  units = "in",
+  res = 600,
+  compression = "lzw",
+  background = "white"
+)
