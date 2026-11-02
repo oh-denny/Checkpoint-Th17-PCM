@@ -49,7 +49,21 @@ genes = c(
 genes_sig = markers[markers$gene %in% genes,]
 
 Idents(combined_data_integrated) = "RNA_snn_res.0.2"
-DoHeatmap(combined_data_integrated, features = genes_sig$gene, slot = "data") + 
+heat = DoHeatmap(combined_data_integrated, features = genes_sig$gene, slot = "data") + 
   scale_fill_gradientn(colors = c("white", "#d39c83", "#5c1d24"),
-  limits = c(0, 6),                  # Define o início em 0 e o fim em 2
+  limits = c(0, 6),                  
     oob = squish)
+
+ggsave(
+  filename = "Figure2A_UMAP_600dpi.tiff",
+  plot = heat,
+  device = ragg::agg_tiff,
+  width = 6,
+  height = 5,
+  units = "in",
+  res = 600,
+  compression = "lzw",
+  background = "white"
+)
+
+
