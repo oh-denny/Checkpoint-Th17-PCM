@@ -11,31 +11,46 @@ library(tidyr)
 rds_path = file.path("data", "combined_data_1.rds")
 combined_data_integrated = readRDS(rds_path)
 
-cluster_colors = c(
-  "0"  = "#F06C45",
-  "1"  = "#296DB0",
-  "2"  = "#E93E3F",
-  "3"  = "#88D3D3",
-  "4"  = "#2C8C61",
-  "5"  = "#155C42",
-  "6"  = "#41704D",
-  "7"  = "#0A6E75",
-  "8"  = "#84C868",
-  "9"  = "#B15929",
-  "10" = "#A99099"
-)
-
 combined_data_integrated$RNA_snn_res.0.2 = factor(
-  combined_data_integrated$RNA_snn_res.0.2,
+  as.character(combined_data_integrated$RNA_snn_res.0.2),
   levels = as.character(0:10)
 )
+
+combined_data_integrated$cluster_celltype = paste0(
+  "Cluster ", combined_data_integrated$RNA_snn_res.0.2, " - ", combined_data_integrated$subtype_cell
+)
+
+ordered_levels = unique(combined_data_integrated$cluster_celltype[order(as.numeric(as.character(combined_data_integrated$RNA_snn_res.0.2)))])
+
+combined_data_integrated$cluster_celltype =- factor(
+  combined_data_integrated$cluster_celltype, 
+  levels = ordered_levels
+)
+
+Idents(combined_data_integrated) = "cluster_celltype"
+
+exact_colors = c(
+  "#F06C45", # 0
+  "#296DB0", # 1
+  "#E93E3F", # 2
+  "#88D3D3", # 3
+  "#2C8C61", # 4
+  "#155C42", # 5
+  "#41704D", # 6
+  "#0A6E75", # 7
+  "#84C868", # 8
+  "#B15929", # 9
+  "#A99099"  # 10
+)
+
+names(exact_colors) <- ordered_levels
 
 p_umap = DimPlot(
   object = combined_data_integrated,
   reduction = "umap",
-  group.by = "RNA_snn_res.0.2",
-  cols = cluster_colors,
-  pt.size = 0.15,
+  group.by = "cluster_celltype",
+  cols = exact_colors,
+  pt.size = .15,
   raster = FALSE
 ) +
   labs(
@@ -50,7 +65,7 @@ p_umap = DimPlot(
   ) +
   theme_void() +
   theme(
-    legend.position = c(0.72, 0.18),
+    legend.position = "bottom",
     legend.title = element_text(
       size = 10,
       face = "plain",
