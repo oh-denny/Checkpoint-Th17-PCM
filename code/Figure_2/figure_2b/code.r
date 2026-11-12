@@ -1,6 +1,7 @@
 #### dotplot
 library(Seurat)
 library(ggplot2)
+library(dplyr)
 
 rds_path = file.path("data", "combined_data_1.rds")
 combined_data_integrated = readRDS(rds_path)
