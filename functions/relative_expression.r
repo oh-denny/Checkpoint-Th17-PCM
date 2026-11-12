@@ -352,38 +352,36 @@ library(dplyr)
 library(ggplot2)
 library(ggrepel)
 
-immune_genes <- list(
+blacklist_pattern <- paste(
+  c("^Gm", "^Rik$", "^Rps", "^Rpl", "^mt-", "^Hbb", "^Hba",
+    "^Rp[sl]", "^Mir", "^Snor", "^Snhg"),
+  collapse = "|"
+)
 
+immune_gene_dict <- list(
   "Macrophages" = c(
-    "Cd1d1", "Cd74", "H2-Aa", "H2-Ab1",
-    "Adgre1", "Cd68", "Csf1r", "Mrc1",
-    "Lgals3", "Il1b", "Tnf", "Ccl2",
-    "Ccl3", "Ccl4", "Cxcl10", "Ccr2",
-    "Stat1", "Irf1", "Irf7", "Isg15",
-    "Gbp2", "Gbp4", "Nos2", "Arg1",
-    "Gpr183", "Rnf128", "Trim47",
-    "Abi2", "Vat1"
+    "Ccr2", "Ccl2", "Ccl3", "Ccl4", "Cxcl9", "Cxcl10",
+    "Gbp2", "Gbp4", "Irf1", "Irf7", "Stat1", "Tnf",
+    "Il1b", "Nos2", "Mrc1", "Adgre1", "Cd68", "Cx3cr1",
+    "Arg1", "Ifitm3", "Fcgr1", "Fcgr3", "H2-Aa", "H2-Ab1"
   ),
-
   "Neutrophils" = c(
-    "S100a8", "S100a9", "Ly6g", "Csf3r",
-    "Cxcr2", "Cxcl2", "Cxcl3",
-    "Il1b", "Tnf", "Lcn2", "Mmp9",
-    "Retnlg", "Camp", "Ngp",
-    "Tnfaip6", "Csf2rb2", "Tifa",
-    "Tgfbr1", "Ppard", "Capg",
-    "Hk3", "Dok3", "Gpr183",
-    "Atg5", "Pdpk1"
+    "Ly6g", "Ngp", "Tnf", "Tnfaip6", "Csf2rb2", "Cxcl2",
+    "Cxcl3", "S100a8", "S100a9", "Il1b", "Cxcr2", "Camp",
+    "Lcn2", "Ifitm1", "Ifitm3", "Csf3r", "Mmp8", "Mmp9"
   ),
-
   "T cells" = c(
-    "Il17a", "Il17f", "Rorc", "Rora",
-    "Foxp3", "Il2ra", "Ctla4", "Il10",
-    "Ccr5", "Ccr6", "Cish", "Nfil3",
-    "Il6st", "Tob1", "Orai1",
-    "Cd69", "Cd44", "Icos", "Tigit",
-    "Tcf7", "Lef1", "Il7r",
-    "Stat3", "Stat5a", "Batf",
-    "Maf", "Irf4"
-  )
+    "Il17a", "Il17f", "Rorc", "Rora", "Il23r", "Ccr6", "Maf",
+    "Foxp3", "Il2ra", "Ctla4", "Tigit", "Ikzf2", "Il10",
+    "Cd44", "Cd69", "Icos", "Tnfrsf4", "Tnfrsf9",
+    "Irf4", "Lef1", "Tcf7", "Ccr7", "Sell", "Klf2",
+    "Tob1", "Il6st", "Orai1", "Prkca", "Nfkbia"
+  )q
+)
+
+force_keep_tcells <- c(
+  "Il17a", "Foxp3", "Il2ra", "Rorc", "Rora", "Maf",
+  "Ctla4", "Cd44", "Irf4", "Lef1", "Tcf7"
+)
+
 )

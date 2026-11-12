@@ -76,104 +76,33 @@ ternary_df = bind_rows(ternary_list)
 ternary_df %>%
   count(Comparison, cell_type)
 
-top_vertex_genes = ternary_df %>%
-  group_by(
-    Comparison,
-    cell_type,
-    dominant
-  ) %>%
-  slice_max(
-    order_by = specificity,
-    n = 8,
-    with_ties = FALSE
-  ) %>%
-  ungroup()
 
-# Aux table
-top_vertex_table = top_vertex_genes %>%
-  select(
-    Comparison,
-    cell_type,
-    dominant,
-    gene,
-    Left,
-    Right,
-    Top,
-    max_prop,
-    specificity
-  ) %>%
-  arrange(
-    Comparison,
-    cell_type,
-    dominant,
-    desc(specificity)
-  )
 
-print(top_vertex_table, n = Inf)
 
-exclude_pattern = paste(
-  c(
-    "^Gm[0-9]",
-    "^Hba-",
-    "^Hbb-",
-    "^Rpl[0-9]",
-    "^Rps[0-9]",
-    "^Mrpl",
-    "^Mrps",
-    "^mt-"
-  ),
-  collapse = "|"
-)
-immune_table = bind_rows(
-  lapply(names(immune_genes), function(ct) {
-
-    tibble(
-      cell_type = ct,
-      gene = immune_genes[[ct]]
-    )
-  })
-)
-
-ternary_immune = ternary_df %>%
-  filter(
-    !grepl(exclude_pattern, gene)
-  ) %>%
-  inner_join(
-    immune_table,
-    by = c("cell_type", "gene")
-  ) %>%
+top_vertex_genes_final <- ternary_df %>%
   mutate(
-    max_prop = pmax(Left, Right, Top),
-    second_prop = apply(
-      cbind(Left, Right, Top),
-      1,
-      function(z) sort(z, decreasing = TRUE)[2]
+    immune_candidate = purrr::map2_lgl(
+      cell_type, gene,
+      ~ .y %in% immune_gene_dict[[.x]]
     ),
-    specificity = max_prop - second_prop
-  )
-
-
-top_vertex_genes_immune = ternary_immune %>%
-  group_by(
-    Comparison,
-    cell_type,
-    dominant
+    forced_gene = ifelse(
+      cell_type == "T cells" & gene %in% force_keep_tcells,
+      TRUE, FALSE
+    ),
+    bad_gene = grepl(blacklist_pattern, gene)
   ) %>%
-  slice_max(
-    order_by = specificity,
-    n = 4,
-    with_ties = FALSE
+  filter(!bad_gene) %>%
+  mutate(
+    priority_score =
+      specificity +
+      ifelse(immune_candidate, 1, 0) +
+      ifelse(forced_gene, 2, 0)
   ) %>%
+  group_by(Comparison, cell_type, dominant) %>%
+  arrange(desc(priority_score), desc(specificity), desc(max_prop)) %>%
+  slice_head(n = 10) %>%
   ungroup()
 
-print(
-  top_vertex_genes_immune %>%
-    select(
-      Comparison, cell_type, dominant,
-      gene, max_prop, specificity
-    ),
-  n = Inf
-)
 
 
 triangle = data.frame(
@@ -184,17 +113,17 @@ triangle = data.frame(
 p_pd1 = plot_ternary(
   comparison_name = "Naive / PBS / anti-PD-1",
   show_labels = TRUE,
-  n_labels = 5,
+  n_labels = 7,
   show_vertex_labels = FALSE,
-  use_immune_genes = FALSE
+  use_immune_genes = TRUE
 )
 
 p_ctla4 = plot_ternary(
   comparison_name = "Naive / PBS / anti-CTLA-4",
   show_labels = TRUE,
-  n_labels = 5,
+  n_labels = 7,
   show_vertex_labels = FALSE,
-  use_immune_genes = FALSE
+  use_immune_genes = TRUE
 )
 
 
