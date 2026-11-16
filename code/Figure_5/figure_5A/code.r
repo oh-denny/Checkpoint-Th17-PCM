@@ -459,4 +459,18 @@ p_nichenet_final = ggplot(plot_df,aes(x = target_id,y = ligand,size = weight,fil
     legend.box = "horizontal"
   ) +
   guides(fill = guide_legend(override.aes = list(size = 4)))
+
+
+
 p_nichenet_final
+ggsave(
+  "Figure5a_p_nichenet_final.tiff",
+  plot = p_nichenet_final,
+  device = ragg::agg_tiff,
+  width = 9,
+  height = 8,
+  units = "in",
+  dpi = 600,
+  compression = "lzw",
+  bg = "white"
+)
