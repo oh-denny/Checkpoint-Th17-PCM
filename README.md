@@ -108,9 +108,11 @@ Panel labels are inferred from existing directories. Scripts for 1A, 2A and 3B a
 
 ## Data availability
 
-No verified study sequencing accession or public processed-data archive is recorded in the supplied materials. Obtain the processed-data bundle from the authors and preserve the paths in [data/README.md](data/README.md). Public deposition and persistent identifiers remain to be added.
+The single-cell RNA sequencing (scRNA-seq) data generated in this study have been deposited in the NCBI Gene Expression Omnibus (GEO) under accession number [GSE318293](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE318293). The dataset is currently under restricted access and will be made publicly available upon publication.
 
-Large RDS files are retained locally and individually excluded from ordinary Git tracking. Small ordering lists, CFU CSVs and resource tables remain eligible for deliberate distribution. Third-party model identity and redistribution terms require verification. NicheNet resource references include [Zenodo record 7074291](https://zenodo.org/record/7074291); this is not the study sequencing accession. Figure 5A queries live OmniPath, so an exact historical resource snapshot and retrieval date are required for exact reproduction.
+All original computational code is available on [GitHub](https://github.com/oh-denny/Checkpoint-Th17-PCM) and has been permanently archived on [Zenodo](https://doi.org/10.5281/zenodo.24323920) (DOI: 10.5281/zenodo.24323920).
+
+Processed data and intermediate objects required for figure reproduction are described in [data/README.md](data/README.md). Large RDS files are excluded from Git tracking and can be obtained from the authors upon request.
 
 ## Software requirements
 
@@ -161,27 +163,6 @@ Use `source(..., print.eval = TRUE)` when running historical scripts containing 
 - Figure 3H heatmap must precede its alluvial companion in the same R session. Figures 3I/J use the 6,219-cell characterization object directly.
 - Figure 4A → 4B–D → 4E/F–G and Figure 4A → 4H → 4I require shared R-session objects. Hard-coded cluster selections must correspond to the intended historical populations.
 - Figure 5A requires the original `pb_th17` sample-level pseudobulk list, whose construction is not supplied. Once restored, it supplies the objects for 5B and 5C–D in the same session. The local `obj_nichenet.rds` alone cannot restore missing pseudobulk counts or predictions.
-
-## Validation and reproducibility limits
-
-Local verification established the following:
-
-- All 42 retained R files parsed; Bash and Python syntax, relative documentation links and literal R source paths passed static checks. The four files above 100 MiB are untracked and individually ignored.
-- The original annotation selection yielded 1,908 cells and exactly matched all four historical CDS cell sets. All five fixed gene-signature scores transferred to every cell without missing values.
-- The corrected Figure 3C script completed four contrast-specific trajectories in a fresh external output directory. Fixed-score figure generation also completed using that regenerated bundle; original scientific inputs were preserved.
-- Regenerated IgG, PD-1 and CTLA-4 ordering sets matched the corresponding historical CDS ordering sets. Infection used 90 genes versus the historical 100. None of the four regenerated pseudotime vectors was numerically identical to its historical counterpart. Historical root/orientation and numerical equivalence therefore remain unresolved.
-
-These checks can be repeated with the retained [trajectory smoke test](scripts/smoke_test_trajectory.R) and validation utilities. The smoke test checks population identity and scoring only; it does not fit trajectories.
-
-A completed script is not evidence of agreement with the original manuscript figures. No complete raw-data-to-figure reproduction, clean environment restoration or numerical/visual equivalence to the historical figure set has been established.
-
-Remaining scientific limitations are retained explicitly:
-
-- Stored CDS ordering genes differ from the separately supplied `genes_*.rds` lists. Use a coherent bundle and confirm intended ordering genes and roots before accepting historical equivalence.
-- The argument `padj_cutoff` in `select_de_genes` filters raw `p_val`. Figure 2F computes BH corrections but annotates raw Dunn p-values. Figure 1B fits CFU observations after a cluster-level join, requiring confirmation of experimental units and repeated-animal weighting. These methods remain unchanged.
-- Local RNA count layers contain fractional values. Count provenance and suitability for count-based methods require confirmation; values have not been rounded.
-- `pb_th17` and `top_vertex_genes` have no supplied producers. Communication population selection, external resource versions and the final manuscript panel numbering require confirmation. Figure 5B contains alternative plot branches and style changes after saving.
-- Some embedding and jitter operations lack an explicit script-level seed. Existing seeds, gene signatures, thresholds, colors and statistical methods were preserved. External package/annotation updates may change results.
 
 ## Citation
 

@@ -40,13 +40,6 @@ Files below are relative to `data/`. Large scientific objects are preserved loca
 | `sketched_data_1.rds` | rds (24,247,482 bytes) | Intermediate scientific result | 2C input; 2C input |
 | `t_cells_CD4.rds` | rds (121,178,512 bytes) | Processed data | 3A; relative effects; 3I; 3J; 4A; 5A |
 
-## Missing inputs and remaining limitations
-
-`pb_th17` has no supplied producer or saved input. `functions/nichenet.r::run_pseudobulk_edger` expects `$counts` (genes × biological samples) and `$metadata` (rownames matching count columns and a `groups` column, with at least two samples per contrast group). The original aggregation, count provenance, filtering and sample definitions must be obtained; no replacement aggregation is inferred.
-
-Supplementary 2A requires `top_vertex_genes`; the supplied `top_vertex_genes_final` ranking is not an automatic substitute. Communication objects (`obj_cellchat_clean`, `cc_*_clean`), enrichment summaries and NicheNet predictions are shared-session objects; follow the main README's execution order. Local `cellchat_list.rds` and `obj_nichenet.rds` are not automatically interchangeable with current cleaned populations or missing predictions.
-
-RNA count layers contain fractional values. Do not round or redefine counts without confirming their provenance and methodological suitability. Exact historical ordering genes, trajectory root provenance, and numerical/visual agreement with manuscript outputs remain unresolved.
 
 ## Large-file distribution
 
