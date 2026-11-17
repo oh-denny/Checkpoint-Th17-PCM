@@ -124,8 +124,8 @@ DimPlot(
   t_cells_CD4,
   reduction = "umap",
   group.by = "seurat_clusters",
-  label = F,
-  repel = F,
+  label = T,
+  repel = T,
   pt.size = 1.7,
   cols = cols
 ) +

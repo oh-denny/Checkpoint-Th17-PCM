@@ -10,7 +10,7 @@ group_colors = c(
   "antictla4" = "#9BC5F3"  
 ) 
 
-SC_obj_sub = t_cells_CD4
+SC_obj_sub = readRDS("./data/t_cells_CD4.rds")
 DefaultAssay(SC_obj_sub) = "RNA"
 Idents(SC_obj_sub) = "seurat_clusters"
 
@@ -125,6 +125,12 @@ genes_igg = select_de_genes(
   n_up = 40,
   n_down = 40
 )
+
+saveRDS(genes_infection, "./data/genes_infection.rds")
+saveRDS(genes_pd1, "./data/genes_pd1.rds")
+saveRDS(genes_ctla4, "./data/genes_ctla4.rds")
+saveRDS(genes_igg, "./data/genes_igg.rds")
+
 
 ordering_genes_condition = intersect(
   genes_infection,
