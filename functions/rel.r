@@ -1,3 +1,8 @@
+# Shared helper: REffect wrapper; caller supplies expression table and comparisons.
+# Inputs: caller arguments/session objects; no automatic data loading.
+# Outputs: functions and documented constants; plots only when called.
+# Dependencies/prerequisites: see docs/SCRIPT_INVENTORY.md and SOFTWARE_REQUIREMENTS.md.
+
 
 library(Seurat)
 library(REffect)

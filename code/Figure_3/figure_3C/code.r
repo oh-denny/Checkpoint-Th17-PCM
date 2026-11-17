@@ -1,5 +1,14 @@
+# Figure/panel: 3C
+# Purpose: DE ordering genes and DDRTree trajectories.
+# Inputs: data/combined_data_1.rds; original CD3+ and CD4+/CD3+ annotations.
+# Packages: Matrix, Seurat, VGAM, monocle, openxlsx, ragg.
+# Outputs: results/trajectory/ (four ordering lists, four contrast-specific CDS objects, plots and workbook).
+# Prerequisites: functions/functions.r, trajectory_input.r and patch/patch.r; fresh output directory.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 source("functions/functions.r")
 source("functions/patch/patch.r")
+source("functions/trajectory_input.r")
 patch_monocle2()
 
 library(Seurat)
@@ -13,17 +22,18 @@ group_colors = c(
   "antictla4" = "#9BC5F3"  
 ) 
 
-SC_obj_sub = readRDS("./data/t_cells_CD4.rds")
-DefaultAssay(SC_obj_sub) = "RNA"
-Idents(SC_obj_sub) = "seurat_clusters"
+SC_condition = load_trajectory_population()
+output_dir = getOption("paracocco.trajectory_output_dir", "results/trajectory")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
+DefaultAssay(SC_condition) = "RNA"
 counts_matrix = GetAssayData(
-  SC_obj_sub,
+  SC_condition,
   assay = "RNA",
   layer = "counts"
 )
 
-cell_metadata = SC_obj_sub@meta.data[
+cell_metadata = SC_condition@meta.data[
   colnames(counts_matrix),
   ,
   drop = FALSE
@@ -54,7 +64,6 @@ cds = newCellDataSet(
 )
 
 patch_monocle2()
-SC_condition = SC_obj_sub
 
 DefaultAssay(SC_condition) = "RNA"
 Idents(SC_condition) = "groups"
@@ -66,7 +75,7 @@ de_pbs_naive = FindMarkers(
   ident.2 = "naive",
   assay = "RNA",
   layer = "data",
-  min.pct = 0.05,
+  min.pct = 0.10,
   logfc.threshold = 0.10,
   only.pos = FALSE
 )
@@ -77,7 +86,7 @@ de_pd1_pbs = FindMarkers(
   ident.2 = "pbs",
   assay = "RNA",
   layer = "data",
-  min.pct = 0.05,
+  min.pct = 0.10,
   logfc.threshold = 0.10,
   only.pos = FALSE
 )
@@ -88,7 +97,7 @@ de_ctla4_pbs = FindMarkers(
   ident.2 = "pbs",
   assay = "RNA",
   layer = "data",
-  min.pct = 0.05,
+  min.pct = 0.10,
   logfc.threshold = 0.10,
   only.pos = FALSE
 )
@@ -99,7 +108,7 @@ de_igg_pbs = FindMarkers(
   ident.2 = "pbs",
   assay = "RNA",
   layer = "data",
-  min.pct = 0.05,
+  min.pct = 0.10,
   logfc.threshold = 0.10,
   only.pos = FALSE
 )
@@ -128,65 +137,39 @@ genes_igg = select_de_genes(
   n_down = 40
 )
 
-saveRDS(genes_infection, "./data/genes_infection.rds")
-saveRDS(genes_pd1, "./data/genes_pd1.rds")
-saveRDS(genes_ctla4, "./data/genes_ctla4.rds")
-saveRDS(genes_igg, "./data/genes_igg.rds")
+saveRDS(genes_infection, file.path(output_dir, "genes_infection.rds"))
+saveRDS(genes_pd1, file.path(output_dir, "genes_pd1.rds"))
+saveRDS(genes_ctla4, file.path(output_dir, "genes_ctla4.rds"))
+saveRDS(genes_igg, file.path(output_dir, "genes_igg.rds"))
 
-
-ordering_genes_condition = intersect(
-  genes_infection,
-  rownames(cds)
-) # 1
- 
-ordering_genes_condition = intersect(
-  genes_igg,
-  rownames(cds)
-) # 2
-
-ordering_genes_condition = intersect(
-  genes_pd1,
-  rownames(cds)
-) # 3
-
-ordering_genes_condition = intersect(
-  genes_ctla4,
-  rownames(cds)
-) # 4
-
-set.seed(1234)
-cds_condition = cds
-cds_condition = estimateSizeFactors(cds_condition)
-cds_condition = estimateDispersions(cds_condition)
-cds_condition = setOrderingFilter(
-  cds_condition,
-  ordering_genes_condition
+ordering_lists = list(
+  PBS_naive = genes_infection,
+  IGG_pbs = genes_igg,
+  PD1_pbs = genes_pd1,
+  CTLA4_pbs = genes_ctla4
 )
-
-cds_condition = reduceDimension(
-  cds_condition,
-  max_components = 2,
-  method = "DDRTree",
-  ncenter = 30 
-)
-
-cds_condition = orderCells(cds_condition)
-
-pData(cds_condition)$groups = factor(
-  pData(cds_condition)$groups,
-  levels = names(group_colors)
-)
-
-saveRDS(cds_condition, "./data/cds_condition_PBS_naive.rds")
-saveRDS(cds_condition, "./data/cds_condition_IGG_pbs.rds")
-saveRDS(cds_condition, "./data/cds_condition_PD1_pbs.rds")
-saveRDS(cds_condition, "./data/cds_condition_CTLA4_pbs.rds")
+for (contrast in names(ordering_lists)) {
+  ordering_genes_condition = intersect(ordering_lists[[contrast]], rownames(cds))
+  set.seed(1234)
+  cds_condition = cds
+  cds_condition = estimateSizeFactors(cds_condition)
+  cds_condition = estimateDispersions(cds_condition)
+  cds_condition = setOrderingFilter(cds_condition, ordering_genes_condition)
+  cds_condition = reduceDimension(
+    cds_condition, max_components = 2, method = "DDRTree", ncenter = 30
+  )
+  cds_condition = orderCells(cds_condition)
+  pData(cds_condition)$groups = factor(
+    pData(cds_condition)$groups, levels = names(group_colors)
+  )
+  saveRDS(cds_condition, file.path(output_dir, paste0("cds_condition_", contrast, ".rds")))
+}
 
 
-cds_condition_pbs = readRDS("./data/cds_condition_PBS_naive.rds")
-cds_condition_igg = readRDS("./data/cds_condition_IGG_pbs.rds")
-cds_condition_pd1 = readRDS("./data/cds_condition_PD1_pbs.rds")
-cds_condition_ctl = readRDS("./data/cds_condition_CTLA4_pbs.rds")
+cds_condition_pbs = readRDS(file.path(output_dir, "cds_condition_PBS_naive.rds"))
+cds_condition_igg = readRDS(file.path(output_dir, "cds_condition_IGG_pbs.rds"))
+cds_condition_pd1 = readRDS(file.path(output_dir, "cds_condition_PD1_pbs.rds"))
+cds_condition_ctl = readRDS(file.path(output_dir, "cds_condition_CTLA4_pbs.rds"))
 
 
 p_pseudotime = monocle::plot_cell_trajectory(
@@ -203,7 +186,7 @@ p_pseudotime = monocle::plot_cell_trajectory(
 p_pseudotime
 
 ggsave(
-  filename = "ctl_pbs.tiff",
+  filename = file.path(output_dir, "ctl_pbs.tiff"),
   plot = p_pseudotime,
   device = ragg::agg_tiff,
   width = 6,
@@ -227,7 +210,7 @@ p_state = monocle::plot_cell_trajectory(
 p_state
 
 ggsave(
-  filename = "ctl_pbs_p_state.tiff",
+  filename = file.path(output_dir, "ctl_pbs_p_state.tiff"),
   plot = p_state,
   device = ragg::agg_tiff,
   width = 6,
@@ -241,7 +224,7 @@ ggsave(
 
 
 # Supp table
-library(writexl)
+# Tables are exported with openxlsx below; no writexl calls are used.
 
 max_len <- max(
   length(genes_infection),
@@ -274,44 +257,5 @@ genes_table <- data.frame(
 
 openxlsx::write.xlsx(
   genes_table,
-  "~/Desktop/genes_trajectory.xlsx"
-)
-
-
-
-
-
-
-
-
-
-cds_condition <- cds
-
-cds_condition <- cds_condition[
-  ,
-  Matrix::colSums(exprs(cds_condition)) > 0
-]
-
-cds_condition <- estimateSizeFactors(cds_condition)
-
-cds_condition <- estimateDispersions(cds_condition)
-
-cds_condition <- setOrderingFilter(
-  cds_condition,
-  ordering_genes_condition
-)
-
-stopifnot(
-  all(is.finite(sizeFactors(cds_condition))),
-  all(sizeFactors(cds_condition) > 0)
-)
-
-set.seed(1234)
-
-cds_condition <- reduceDimension_safe(
-  cds_condition,
-  max_components = 2,
-  reduction_method = "DDRTree",
-  auto_param_selection = TRUE,
-  verbose = TRUE
+  file.path(output_dir, "genes_trajectory.xlsx")
 )

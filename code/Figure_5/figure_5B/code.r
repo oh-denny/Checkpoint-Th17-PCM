@@ -1,3 +1,12 @@
+# Figure/panel: 5B
+# Purpose: Sender ligand and receiver receptor expression.
+# Inputs (under data/ unless session objects): session obj_nichenet.
+# Packages: Seurat, dplyr, ggplot2, patchwork.
+# Outputs: results/nichenet/Figure5B.pdf; results/nichenet/Figure5B.png.
+# Prerequisites: Run figure_5A or provenance-verified historical obj_nichenet.rds.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+if (!exists("obj_nichenet", inherits = TRUE)) stop("Missing obj_nichenet. Run Figure 5A in this R session or restore the documented historical obj_nichenet.rds after verifying provenance.")
 
 
 

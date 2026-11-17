@@ -1,3 +1,15 @@
+# Figure/panel: 4I
+# Purpose: Neutrophil pathway-to-gene alluvial plot.
+# Inputs (under data/ unless session objects): session go_neut_focus.
+# Packages: dplyr, ggalluvial, ggplot2, ggrepel, tidyr.
+# Outputs: enrichment_alluvial.tiff.
+# Prerequisites: Run figure_4A then figure_4H.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+if (!exists("go_neut_focus", inherits = TRUE)) stop("Missing go_neut_focus. Run Figure 4A then 4H in this R session first.")
 
 library(ggalluvial)
 library(ggrepel)

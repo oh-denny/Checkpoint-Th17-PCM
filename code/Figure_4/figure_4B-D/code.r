@@ -1,3 +1,13 @@
+# Figure/panel: 4B–D
+# Purpose: Group-specific CellChat networks.
+# Inputs (under data/ unless session objects): session obj_cellchat_clean.
+# Packages: CellChat, Seurat.
+# Outputs: communication_pbs.tiff; communication_pd1.tiff; communication_ctla4.tiff.
+# Prerequisites: Run figure_4A; functions/cellchat.r.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+library(Seurat)
+if (!exists("obj_cellchat_clean", inherits = TRUE)) stop("Missing obj_cellchat_clean. Run Figure 4A in this R session first.")
 
 # run figure 4_A
 library(CellChat)

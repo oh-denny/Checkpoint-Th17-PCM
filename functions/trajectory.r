@@ -1,3 +1,8 @@
+# Shared helper: Fixed gene signatures, mean-expression scoring and pseudotime plotting.
+# Inputs: caller arguments/session objects; no automatic data loading.
+# Outputs: functions and documented constants; plots only when called.
+# Dependencies/prerequisites: see docs/SCRIPT_INVENTORY.md and SOFTWARE_REQUIREMENTS.md.
+
 
 suppressPackageStartupMessages({
   library(Seurat)
@@ -107,17 +112,17 @@ calculate_fixed_module_scores <- function(
 
   if (!(assay %in% assay_names)) {
     stop(
-      "Assay '", assay, "' não encontrado. Assays disponíveis: ",
+      "Assay '", assay, "' not found. Available assays: ",
       paste(assay_names, collapse = ", ")
     )
   }
 
   if (!is.list(modules)) {
-    stop("'modules' precisa ser uma lista nomeada.")
+    stop("'modules' must be a named list.")
   }
 
   if (is.null(names(modules)) || any(names(modules) == "")) {
-    stop("'modules' precisa ter nomes para todas as assinaturas.")
+    stop("'modules' must name every signature.")
   }
 
   expression_matrix <- SeuratObject::LayerData(
@@ -129,18 +134,18 @@ calculate_fixed_module_scores <- function(
   if (is.null(expression_matrix)) {
     stop(
       "A layer '", layer,
-      "' não foi encontrada no assay '", assay, "'."
+      "' was not found in assay '", assay, "'."
     )
   }
 
   if (nrow(expression_matrix) == 0 || ncol(expression_matrix) == 0) {
-    stop("A matriz de expressão selecionada está vazia.")
+    stop("The selected expression matrix is empty.")
   }
 
   available_genes <- rownames(expression_matrix)
 
   if (is.null(available_genes)) {
-    stop("A matriz de expressão não possui nomes de genes.")
+    stop("The expression matrix has no gene names.")
   }
 
   scores <- data.frame(
@@ -171,15 +176,15 @@ calculate_fixed_module_scores <- function(
       module_name,
       ": ",
       length(genes_use),
-      " genes utilizados — ",
+      " genes used — ",
       paste(genes_use, collapse = ", ")
     )
 
     if (length(genes_use) == 0) {
       stop(
-        "Nenhum gene da assinatura '",
+        "No gene from signature '",
         module_name,
-        "' foi encontrado na matriz."
+        "' was found in the matrix."
       )
     }
 
@@ -198,7 +203,7 @@ calculate_fixed_module_scores <- function(
   }
 
   if (anyNA(scores)) {
-    stop("Foram produzidos valores NA no cálculo dos scores.")
+    stop("Score calculation produced NA values.")
   }
 
   scores

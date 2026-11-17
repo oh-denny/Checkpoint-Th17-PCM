@@ -1,3 +1,11 @@
+# Figure/panel: 1E–F
+# Purpose: Treatment-specific cellular prioritization from abundance.
+# Inputs (under data/ unless session objects): combined_data_1.rds; CFU/cfu_exp1.csv (loaded).
+# Packages: Seurat, dplyr, emmeans, forcats, ggplot2, ggrepel, ragg, readr, tibble, tidyr.
+# Outputs: cellular_prioritization_antictla4.tiff; cellular_prioritization_antipd1.tiff (under results/figure1_audit).
+# Prerequisites: functions/functions.r.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 library(Seurat)
 library(dplyr)

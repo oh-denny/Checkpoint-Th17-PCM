@@ -1,10 +1,74 @@
-
-
-*.png
-*/CFU/
-*.pdf
-*.csv
+# Interactive sessions and local environments
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+.Renviron
+.Rprofile.local
+renv/library/
+renv/staging/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+config/pipeline.env
 .DS_Store
-*.rds
-*.tiff
 *.log
+*.tmp
+*.bak
+*.swp
+# Credentials and machine-local configuration
+.aws/
+.ssh/
+*.pem
+# Generated analyses; retain curated SVG/PNG workflow artwork under figures/
+/results/
+/logs/
+/annotations/
+/data/input/
+/config/bonsai_sketch5000.yaml
+/*.tiff
+/*.pdf
+/*.png
+# Historical bulk objects remain local; do not blanket-ignore scientific RDS/CSV.
+/data/combined_data_1.rds
+/data/combined_data_integrated.rds
+/data/combined_data2.rds
+/data/t_cells_CD4.rds
+/data/sketched_data_1.rds
+/data/obj_nichenet.rds
+/data/cellchat_list.rds
+/data/cds_condition_*.rds
+/data/nichenet/ligand_target_matrix_nsga2r_final_mouse.rds
+/data/nichenet/weighted_networks_nsga2r_final_mouse.rds
+# Original experiment workbooks/slides need author distribution review.
+/data/CFU/EXP */
+
+# Generated analysis outputs
+/omnipathr-log/
+
+# R session files
+
+# System files
+
+# Python cache
+*.pyc
+
+# Local environment and credentials
+.env.local
+
+# Temporary files
+
+## Local diagnostics and generated outputs
+/docs/validation/
+/validation/
+/tmp/
+.cache/
+.pytest_cache/
+*.tif
+
+*.rds
+*.csv

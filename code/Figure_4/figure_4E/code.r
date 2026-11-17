@@ -1,3 +1,14 @@
+# Figure/panel: 4E
+# Purpose: CellChat interaction-strength heatmaps.
+# Inputs (under data/ unless session objects): session cc_pbs_clean, cc_pd1_clean, cc_ctl_clean.
+# Packages: ComplexHeatmap, circlize, grid.
+# Outputs: communication_heatmap.tiff.
+# Prerequisites: Run figure_4A then figure_4B-D.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+if (!exists("cc_pbs_clean", inherits = TRUE)) stop("Missing cc_pbs_clean. Run Figure 4A then 4B-D in this R session first.")
+if (!exists("cc_pd1_clean", inherits = TRUE)) stop("Missing cc_pd1_clean. Run Figure 4A then 4B-D in this R session first.")
+if (!exists("cc_ctl_clean", inherits = TRUE)) stop("Missing cc_ctl_clean. Run Figure 4A then 4B-D in this R session first.")
 
 
 

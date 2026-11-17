@@ -1,3 +1,11 @@
+# Figure/panel: 1G
+# Purpose: Cluster count fold changes and CFU association.
+# Inputs (under data/ unless session objects): combined_data_1.rds; CFU/mapping_exp1.csv; CFU/cfu_exp1.csv.
+# Packages: Seurat, dplyr, ggplot2, ggpubr, ragg, readr, stringr, tibble, tidyr, tidyverse.
+# Outputs: barplot_logFC.tiff; pro_cell.tiff (under results/figure1_audit).
+# Prerequisites: None after explicit CFU loading.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 library(Seurat)
 library(dplyr)
 library(tidyr)
@@ -149,6 +157,9 @@ library(tidyverse)
 library(Seurat)
 library(ggpubr)
 
+mapping_exp1 = read.csv("data/CFU/mapping_exp1.csv")
+cfu_exp1 = read.csv("data/CFU/cfu_exp1.csv")
+
 combined_data_integrated$cluster_id = combined_data_integrated$RNA_snn_res.0.2
 combined_data_integrated$original_animal = mapping_exp1$original_animal[
   match(combined_data_integrated$cartig, mapping_exp1$cartig)
@@ -182,7 +193,7 @@ pro_cell = ggplot(data_for_cor,
     drop = FALSE
   ) +
   theme(
-    legend.position = 'botom'
+    legend.position = 'bottom'
   )
 
 ggsave(

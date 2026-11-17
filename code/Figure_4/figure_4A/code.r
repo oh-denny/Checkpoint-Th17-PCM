@@ -1,3 +1,11 @@
+# Figure/panel: 4A
+# Purpose: Myeloid–T-cell communication population preparation.
+# Inputs (under data/ unless session objects): combined_data_1.rds; t_cells_CD4.rds.
+# Packages: Seurat.
+# Outputs: DIMT_sub.tiff.
+# Prerequisites: None; review hard-coded cluster selections before regeneration.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 ######
 library(Seurat)

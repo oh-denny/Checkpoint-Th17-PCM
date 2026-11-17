@@ -1,95 +1,55 @@
-# Paracoccidioidomycosis scRNA-seq — Sanity / Bonsai pipeline
+# Figure 2C: Seurat sketch → Sanity → Bonsai → Scout
 
-Reproducible scripts for preprocessing a Seurat sketch with **Sanity**, reconstructing a cell-state hierarchy with **Bonsai**, and exploring it with **Bonsai-scout**. The input is a **5,000-cell leverage-score sketch** of a pulmonary *Paracoccidioides brasiliensis* scRNA-seq dataset.
+Run from the repository root. This branch reconstructs exploratory transcriptomic similarity/hierarchy, not a causal treatment model. Counts in local Seurat objects include fractional values; their provenance and suitability for external methods require author review. No rounding or scientific parameters were changed during the audit.
 
-> **Scope:** exploratory transcriptomic hierarchy, **not** proof of cell-state transitions or causal treatment effects. The source RNA count matrix contained fractional values whose provenance was not confirmed; confirm statistical suitability before using derived results as definitive manuscript evidence.
+## Inputs and software
 
-## Repository structure
+The historical `data/combined_data_1.rds` is the input to [code_sketch.r](export_mtx/code_sketch.r), which saves `data/sketched_data_1.rds`. Alternatively use the verified historical sketch. [export.r](export_mtx/export.r) reads that saved object and writes:
 
-```text
-.
-├── config/
-│   └── pipeline.env.example    # environment-specific paths (copy to pipeline.env)
-├── data/input/                 # local inputs; ignored by Git
-├── scripts/
-│   ├── common.sh
-│   ├── 01_run_sanity.sh
-│   ├── 02_run_bonsai.sh
-│   ├── 03_prepare_scout.sh
-│   ├── 04_set_palette.py
-│   └── 05_launch_scout.sh
-├── results/                    # ignored by Git
-├── annotations/                # ignored by Git
-├── logs/                       # ignored by Git
-└── .gitignore
-```
+| File under data/input/ | Meaning |
+|---|---|
+| matrix.mtx | Genes × cells, RNA counts; fractional values preserved |
+| genes.tsv | Gene identifiers in matrix row order |
+| cells.tsv | Cell identifiers in matrix column order |
+| cell_metadata.csv | cell_id, cartig, groups, seurat_clusters, subtype_cell |
 
-## Requirements
+The local audit identified a 5,000-cell historical sketch. A temporary export during this audit reproduced the previously described 15,936 expressed genes × 5,000 cells and 1,609,362 stored entries. Reloaded Matrix Market values and gene/cell/metadata ordering matched the historical sketch. This validates export, not upstream sketch regeneration or downstream Sanity/Bonsai computation.
 
-- Linux/bash; Python >=3.7 (prefer the preconfigured Conda `bonsai` environment)
-- Installed [Sanity](https://github.com/jmborghans/Sanity) and [Bonsai-data-representation](https://github.com/dhdegroot/Bonsai-data-representation) repositories
-- MPI (`mpiexec`) and `mpi4py` for Bonsai; dependencies from the upstream Bonsai requirements
-- Seurat-generated sparse Matrix Market input plus matching gene/cell identifiers
+Install external [Sanity](https://github.com/jmborghans/Sanity) and [Bonsai-data-representation](https://github.com/dhdegroot/Bonsai-data-representation) checkouts with their upstream dependencies. The shell wrappers require Bash, Python, MPI (`mpiexec`) and `mpi4py`. The historical guide specified Python >=3.7; a complete working external environment and source revisions remain to be captured. The repository does not vendor those projects.
 
-The upstream projects remain external dependencies and are **not vendored** into this repository. Pin the commit hashes of both upstream projects and Conda package versions for full reproducibility.
-
-## Configure
+## Configuration
 
 ```bash
 cp config/pipeline.env.example config/pipeline.env
-# Edit BONSAI_REPO and SANITY_HOME (absolute local install paths)
-# Activate your Conda environment: conda activate bonsai
+# Edit BONSAI_REPO and SANITY_HOME to your installed checkouts.
 ```
 
-Put the following files under `data/input/`:
+`PROJECT_DIR` defaults to the repository root, derived from the wrapper location, so every stage uses the same root-level data/config/results directories. Use an absolute `PROJECT_DIR` for a separate prepared run directory. The example preserves existing defaults: Sanity 8 threads; Bonsai 4 MPI processes, z-score cutoff 1.0, KNN 10; Scout port 8765. Local config is ignored by Git.
 
-- `matrix.mtx` — genes × cells; **raw available RNA counts**, including fractional values, exported as Matrix Market `real general` without rounding
-- `genes.tsv` — gene names in matrix row order
-- `cells.tsv` — cell IDs in matrix column order
-- `cell_metadata.csv` — includes `cell_id`, `cartig` (biological replicate), `groups`, and `subtype_cell`
+## Execution order
 
-In the demonstrated execution, the final exported matrix had **15,936 expressed genes × 5,000 cells** (1,609,362 stored nonzero entries). The original Seurat sketch sampled 5,000 of 26,200 cells using `SketchData(method="LeverageScore", seed=123)`; these scripts begin *after* exporting that sketch.
+Protect existing objects before regenerating a sketch; the R producer writes the same filename. Export also overwrites existing exported inputs. Use a fresh working copy/output area.
 
-## Run
+```r
+source("code/Figure_2/figure_2C/export_mtx/code_sketch.r", print.eval = TRUE)
+source("code/Figure_2/figure_2C/export_mtx/export.r", print.eval = TRUE)
+```
+
+Then, from the repository root with the external environment activated:
 
 ```bash
-# From repository root; activate the environment first
-bash scripts/01_run_sanity.sh
-bash scripts/02_run_bonsai.sh
-bash scripts/03_prepare_scout.sh
-python scripts/04_set_palette.py results/bonsai/bonsai_vis_settings.json --to-map RdPu
-bash scripts/05_launch_scout.sh
+bash code/Figure_2/figure_2C/sanity_bonsai/01_run_sanity.sh
+bash code/Figure_2/figure_2C/sanity_bonsai/02_run_bonsai.sh
+bash code/Figure_2/figure_2C/sanity_bonsai/03_prepare_scout.sh
+# Optional explicit visualization operation; preserves original categorical palettes.
+python code/Figure_2/figure_2C/sanity_bonsai/04_set_palette.py results/bonsai/bonsai_vis_settings.json --to-map RdPu
+bash code/Figure_2/figure_2C/sanity_bonsai/05_launch_scout.sh
 ```
 
-For long-running reconstruction, use tmux, e.g. `tmux new -s bonsai-paracocco`, then run step 02 inside it; detach with Ctrl+B, D. Avoid rerunning step 02 when a final tree already exists.
+Sanity produces `results/sanity/delta.txt`, `d_delta.txt`, geneID.txt and cellID.txt. Bonsai creates a YAML config under `config/` and reconstructed results under `results/bonsai/`. Scout preprocessing copies metadata to `annotations/`. Stage logs go to `logs/`. The viewer uses localhost port 8765 by default. No reconstruction or viewer was run during this audit.
 
-If scout is running on a remote host, open an SSH tunnel **on your local computer**:
+Stages 01 and 02 guard against certain existing outputs; other intermediate/config files may still be overwritten. Never use these wrappers to validate against the only copy of historical results. The palette utility changes only matching sequential-map strings, writes a backup once, and must be invoked explicitly. Its execution on a synthetic JSON fixture was tested separately from scientific reproduction.
 
-```bash
-ssh -N -L 8765:localhost:8765 USER@SERVER
-```
+## Provenance and interpretation
 
-Then open `http://localhost:8765` in a local browser. Choose an unused port if needed.
-
-## Analysis settings used
-
-| Stage | Parameters |
-|---|---|
-| Seurat SketchData | 5,000 cells, `LeverageScore`, seed 123 |
-| Input matrix | 15,936 genes × 5,000 cells; fractional values preserved |
-| Sanity | `-n 8 -e 1 -v_m MAP` |
-| Bonsai | 4 MPI processes; `zscore_cutoff=1.0`; `use_knn=10`; `pickup_intermediate=False` |
-| Bonsai-scout | `take_all_genes=True` |
-| Visualization | Sequential colormap `RdPu` (original `YlOrRd`) |
-
-## Reproducibility and interpretation
-
-- Keep the original Seurat object and sample sheet outside the repository; do not upload sample-level data to public GitHub without authorization.
-- Retain replicate metadata (`cartig`) and use **animals**, not cells, as independent experimental units for downstream treatment statistics.
-- Bonsai visualizes transcriptomic similarity and hierarchy; group mixing is not evidence of no treatment effect.
-- Aesthetic palettes do not change inferred expression values. Verify feature scaling before comparing colors across genes.
-- Regeneration overwrites configuration and may consume significant compute time; use a fresh output directory for independent runs.
-
-## Acknowledgments
-
-Sanity and Bonsai are third-party research software. Cite their original publications and check repository licenses before redistributing code.
+Record source checkout commits, external environment versions, exported count provenance, input/output checksums and the final panel export process. Retain `cartig` sample identities and confirm biological replication. The code currently ends at an interactive viewer; it does not automate a final Figure 2C image export. Tree structure and group mixing alone do not establish cell-state transitions or causal treatment effects.

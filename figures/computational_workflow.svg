@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1140" viewBox="0 0 1600 1140" role="img" aria-labelledby="title desc"><title id="title">Manuscript computational workflow</title><desc id="desc">The integrated lung Seurat object directly supplies an original annotation-selected 1908-cell trajectory population, expression analyses, and a distinct 6219-cell CD4 characterization population. Trajectory fitting completed but historical numerical equivalence remains unresolved. NicheNet requires missing pseudobulk input.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#78909c"/></marker></defs><rect width="1600" height="1140" fill="#f5f7fa"/><style>text{font-family:Arial,Helvetica,sans-serif}.h{font-size:24px;font-weight:700;fill:#17334b}.t{font-size:19px;fill:#34495e}.s{font-size:17px;fill:#526878}</style><text x="65" y="65" font-size="35" font-weight="700" fill="#17334b">Computational workflow</text><text x="65" y="103" class="t">Lung single-cell analyses • Manuscript Figures 1–5 • Distinct trajectory and characterization populations</text>
+<path d="M800 250 V282 H285 V320" fill="none" stroke="#78909c" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M800 250 V320" fill="none" stroke="#78909c" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M800 250 V282 H1315 V320" fill="none" stroke="#78909c" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M390 200 H35 V620 H285 V650" fill="none" stroke="#78909c" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M1315 560 V605 H800 V650" fill="none" stroke="#78909c" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M1315 560 V650" fill="none" stroke="#78909c" stroke-width="2.5" marker-end="url(#arrow)"/>
+<g><rect x="390" y="145" width="820" height="105" rx="14" fill="white" stroke="#267f85" stroke-width="2"/><rect x="408" y="167" width="5" height="27" rx="2" fill="#267f85"/><text x="427" y="188" class="h">Annotated integrated lung Seurat object</text>
+<text x="415" y="224" class="t">combined_data_1.rds • 26,200 cells • original annotations and animal metadata</text>
+</g>
+<g><rect x="65" y="320" width="440" height="240" rx="14" fill="white" stroke="#ba7836" stroke-width="2" stroke-dasharray="8 6"/><rect x="83" y="342" width="5" height="27" rx="2" fill="#ba7836"/><text x="102" y="363" class="h">Original trajectory population</text>
+<text x="90" y="399" class="t">CD3+ and CD4+/CD3+ annotations</text>
+<text x="90" y="427" class="t">1,908 cells; exact historical cell sets</text>
+<text x="90" y="455" class="t">Per-contrast DE → Monocle 2 / DDRTree</text>
+<text x="90" y="483" class="t">Fixed scores + GO enrichment • 3C–H</text>
+<text x="90" y="511" class="t">Execution passed; equivalence pending</text>
+</g>
+<g><rect x="580" y="320" width="440" height="240" rx="14" fill="white" stroke="#267f85" stroke-width="2"/><rect x="598" y="342" width="5" height="27" rx="2" fill="#267f85"/><text x="617" y="363" class="h">Expression and cell hierarchy</text>
+<text x="605" y="399" class="t">Markers, relative expression, signatures</text>
+<text x="605" y="427" class="t">Sketch → Sanity → Bonsai → Scout</text>
+<text x="605" y="455" class="t">Figure 2 and supplementary 2A</text>
+<text x="605" y="483" class="t">External reconstruction not validated</text>
+</g>
+<g><rect x="1095" y="320" width="440" height="240" rx="14" fill="white" stroke="#267f85" stroke-width="2"/><rect x="1113" y="342" width="5" height="27" rx="2" fill="#267f85"/><text x="1132" y="363" class="h">CD4 characterization population</text>
+<text x="1120" y="399" class="t">Separate reclustering • 6,219 cells</text>
+<text x="1120" y="427" class="t">t_cells_CD4.rds • Figure 3A</text>
+<text x="1120" y="455" class="t">Marker and signature displays • 3I–J</text>
+<text x="1120" y="483" class="t">Not the input to trajectory analysis</text>
+</g>
+<g><rect x="65" y="650" width="440" height="215" rx="14" fill="white" stroke="#267f85" stroke-width="2"/><rect x="83" y="672" width="5" height="27" rx="2" fill="#267f85"/><text x="102" y="693" class="h">Composition and fungal burden</text>
+<text x="90" y="729" class="t">CFU tables + animal/sample mapping</text>
+<text x="90" y="757" class="t">Dirichlet regression and prioritization</text>
+<text x="90" y="785" class="t">Figures 1B–G</text>
+</g>
+<g><rect x="580" y="650" width="440" height="215" rx="14" fill="white" stroke="#267f85" stroke-width="2"/><rect x="598" y="672" width="5" height="27" rx="2" fill="#267f85"/><text x="617" y="693" class="h">CellChat communication</text>
+<text x="605" y="729" class="t">Lung myeloid + selected CD4 cells</text>
+<text x="605" y="757" class="t">4A → 4B–D → 4E / 4F–G</text>
+<text x="605" y="785" class="t">4A → neutrophil DE / GO → 4I</text>
+<text x="605" y="813" class="t">Requires intended population identities</text>
+</g>
+<g><rect x="1095" y="650" width="440" height="215" rx="14" fill="white" stroke="#ba7836" stroke-width="2" stroke-dasharray="8 6"/><rect x="1113" y="672" width="5" height="27" rx="2" fill="#ba7836"/><text x="1132" y="693" class="h">NicheNet inference</text>
+<text x="1120" y="729" class="t">Lung myeloid + selected CD4 cells</text>
+<text x="1120" y="757" class="t">Mouse models and OmniPath resources</text>
+<text x="1120" y="785" class="t">Missing pb_th17 aggregation input</text>
+<text x="1120" y="813" class="t">5A → expression displays and chords</text>
+</g>
+<rect x="65" y="920" width="1470" height="155" rx="14" fill="#e8eef3"/><text x="90" y="958" class="h">Reproduction scope</text><text x="90" y="994" class="t">Raw preprocessing and original annotation provenance are not supplied. Historical numerical/visual agreement is unverified.</text><text x="90" y="1026" class="t">Dashed borders identify unresolved input or historical-equivalence requirements.</text><text x="90" y="1056" class="s">Arrows show computational dependencies, not biological mechanisms. See README for software, execution order and remaining limitations.</text></svg>

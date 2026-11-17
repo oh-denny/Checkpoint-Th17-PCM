@@ -1,6 +1,17 @@
+# Figure/panel: 2C input
+# Purpose: Export sparse counts, identifiers and metadata.
+# Inputs (under data/ unless session objects): sketched_data_1.rds.
+# Packages: Matrix, Seurat.
+# Outputs: data/input/{matrix.mtx, genes.tsv, cells.tsv, cell_metadata.csv}.
+# Prerequisites: code_sketch.r or verified historical sketch.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
 
-# from obj_sketch
-outdir = "paracocco/bonsai_input"
+
+# Load the saved sketch; use the repository root as working directory.
+library(Seurat)
+library(Matrix)
+obj_sketch = readRDS("data/sketched_data_1.rds")
+outdir = "data/input"
 dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
 
 counts = GetAssayData(obj_sketch,assay = "RNA",layer = "counts")

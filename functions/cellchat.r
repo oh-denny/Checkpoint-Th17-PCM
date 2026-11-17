@@ -1,3 +1,8 @@
+# Shared helper: CellChat inference and matrix lookup; caller supplies Seurat object.
+# Inputs: caller arguments/session objects; no automatic data loading.
+# Outputs: functions and documented constants; plots only when called.
+# Dependencies/prerequisites: see docs/SCRIPT_INVENTORY.md and SOFTWARE_REQUIREMENTS.md.
+
 
 library(CellChat)
 

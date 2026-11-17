@@ -1,3 +1,11 @@
+# Figure/panel: 2F
+# Purpose: Animal-averaged T-cell module scores; Kruskal–Wallis and Dunn tests.
+# Inputs (under data/ unless session objects): combined_data_1.rds.
+# Packages: Seurat, dplyr, ggplot2, ggpubr, grid, rstatix, tidyr.
+# Outputs: Figure2_Tcell_ModuleScores_Dunn.tiff.
+# Prerequisites: None; processed inputs required.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 library(Seurat)
 library(dplyr)

@@ -1,3 +1,11 @@
+# Figure/panel: 3I
+# Purpose: CD4 marker feature plots.
+# Inputs (under data/ unless session objects): t_cells_CD4.rds.
+# Packages: Seurat, ggplot2.
+# Outputs: feature_plot.pdf.
+# Prerequisites: None; historical CD4 object required.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 library(ggplot2)
 library(Seurat)
@@ -48,5 +56,5 @@ feature_plot = FeaturePlot(
   )
 
 pdf("feature_plot.pdf", width = 8, height = 7)
-feature_plot
+print(feature_plot)
 dev.off()

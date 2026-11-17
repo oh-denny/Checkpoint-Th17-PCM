@@ -1,18 +1,30 @@
-### modeule score
+# Figure/panel: 3D–G
+# Purpose: Fixed mean-expression module scores along pseudotime.
+# Inputs: four trajectory CDS objects and ordering lists; data/combined_data_1.rds for original annotation-based scores.
+# Packages: patchwork, ragg.
+# Outputs: results/trajectory_scores/ (plot and four scored CDS objects).
+# Prerequisites: Historical trajectories; functions/trajectory.r; provenance review.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+### Fixed module scores
 source("./functions/trajectory.r")
 library(patchwork)
+trajectory_data_dir = getOption("paracocco.trajectory_data_dir", "data")
+score_output_dir = getOption("paracocco.trajectory_score_output_dir", "results/trajectory_scores")
+dir.create(score_output_dir, recursive = TRUE, showWarnings = FALSE)
 
-cds_condition_PBS_naive = readRDS("./data/cds_condition_PBS_naive.rds")
-cds_condition_IGG_pbs = readRDS("./data/cds_condition_IGG_pbs.rds")
-cds_condition_PD1_pbs = readRDS("./data/cds_condition_PD1_pbs.rds")
-cds_condition_CTLA4_pbs = readRDS("./data/cds_condition_CTLA4_pbs.rds")
+cds_condition_PBS_naive = readRDS(file.path(trajectory_data_dir, "cds_condition_PBS_naive.rds"))
+cds_condition_IGG_pbs = readRDS(file.path(trajectory_data_dir, "cds_condition_IGG_pbs.rds"))
+cds_condition_PD1_pbs = readRDS(file.path(trajectory_data_dir, "cds_condition_PD1_pbs.rds"))
+cds_condition_CTLA4_pbs = readRDS(file.path(trajectory_data_dir, "cds_condition_CTLA4_pbs.rds"))
 
-genes_infection = readRDS("./data/genes_infection.rds")
-genes_pd1 = readRDS("./data/genes_pd1.rds")
-genes_ctla4 = readRDS("./data/genes_ctla4.rds")
-genes_igg = readRDS("./data/genes_igg.rds")
+genes_infection = readRDS(file.path(trajectory_data_dir, "genes_infection.rds"))
+genes_pd1 = readRDS(file.path(trajectory_data_dir, "genes_pd1.rds"))
+genes_ctla4 = readRDS(file.path(trajectory_data_dir, "genes_ctla4.rds"))
+genes_igg = readRDS(file.path(trajectory_data_dir, "genes_igg.rds"))
 
-t_cells_CD4 = readRDS("./data/t_cells_CD4.rds")
+source("functions/trajectory_input.r")
+trajectory_cells = load_trajectory_population()
 
 gene_lists = list(
   Infection   = unique(genes_infection),
@@ -37,7 +49,7 @@ not_from_contrasts = lapply(module_signatures,function(genes) setdiff(genes, all
 
 module_signatures_present = lapply(
   module_signatures,
-  function(genes) intersect(genes, rownames(t_cells_CD4))
+  function(genes) intersect(genes, rownames(trajectory_cells))
 )
 
 signature_summary = tibble(
@@ -52,7 +64,7 @@ signature_summary = tibble(
 )
 
 fixed_module_scores = calculate_fixed_module_scores(
-  seurat_object = t_cells_CD4,
+  seurat_object = trajectory_cells,
   modules = module_signatures_present,
   assay = "RNA",
   layer = "data"
@@ -68,6 +80,11 @@ cds_list = list(
   CTLA4 = cds_condition_CTLA4_pbs
 )
 
+for (cds_item in cds_list) {
+  if (!setequal(colnames(cds_item), colnames(trajectory_cells))) {
+    stop("Trajectory cell identities do not match the original annotation-based population.")
+  }
+}
 cds_list = lapply(cds_list, remove_old_score_columns)
 cds_list = lapply(
   cds_list,
@@ -166,7 +183,7 @@ p_all_fixed_scores = (
 print(p_all_fixed_scores)
 
 ggsave(
-  filename = "./fixed_module_scores_pseudotime.tiff",
+  filename = file.path(score_output_dir, "fixed_module_scores_pseudotime.tiff"),
   plot = p_all_fixed_scores,
   device = ragg::agg_tiff,
   width = 14,
@@ -177,7 +194,7 @@ ggsave(
   background = "white"
 )
 
-saveRDS(cds_condition_PBS_naive,"./data/cds_condition_PBS_naive_fixed_scores.rds")
-saveRDS(cds_condition_IGG_pbs,"./data/cds_condition_IGG_pbs_fixed_scores.rds")
-saveRDS(cds_condition_PD1_pbs,"./data/cds_condition_PD1_pbs_fixed_scores.rds")
-saveRDS(cds_condition_CTLA4_pbs,"./data/cds_condition_CTLA4_pbs_fixed_scores.rds")
+saveRDS(cds_condition_PBS_naive,file.path(score_output_dir, "cds_condition_PBS_naive_fixed_scores.rds"))
+saveRDS(cds_condition_IGG_pbs,file.path(score_output_dir, "cds_condition_IGG_pbs_fixed_scores.rds"))
+saveRDS(cds_condition_PD1_pbs,file.path(score_output_dir, "cds_condition_PD1_pbs_fixed_scores.rds"))
+saveRDS(cds_condition_CTLA4_pbs,file.path(score_output_dir, "cds_condition_CTLA4_pbs_fixed_scores.rds"))

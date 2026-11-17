@@ -1,3 +1,8 @@
+# Shared helper: Chord plot helpers; caller supplies plot_df and mac_col, neu_col, tar_col.
+# Inputs: caller arguments/session objects; no automatic data loading.
+# Outputs: functions and documented constants; plots only when called.
+# Dependencies/prerequisites: see docs/SCRIPT_INVENTORY.md and SOFTWARE_REQUIREMENTS.md.
+
 prepare_circos_data <- function(df, comparison_name, top_ligands_per_sender = 10, top_targets = 20, min_weight = 0.03) {
         x <- df %>% filter(comparison == comparison_name)
 

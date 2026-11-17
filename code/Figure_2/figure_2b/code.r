@@ -1,3 +1,11 @@
+# Figure/panel: 2B
+# Purpose: Cell-type marker dot plot.
+# Inputs (under data/ unless session objects): combined_data_1.rds.
+# Packages: Seurat, dplyr, ggplot2, ragg.
+# Outputs: Figure2_DotPlot_BonsaiColors.tiff.
+# Prerequisites: None; processed inputs required.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 #### dotplot
 library(Seurat)
 library(ggplot2)

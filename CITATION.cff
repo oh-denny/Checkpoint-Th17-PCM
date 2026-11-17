@@ -1,0 +1,61 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it using the metadata below.
+title: Checkpoint blockade rewires lung immunity to promote Th17-driven antifungal defense during Paracoccidioides
+  infection
+type: software
+authors:
+- family-names: Muxel
+  given-names: Sandra Marcia
+- family-names: Fonseca
+  given-names: Dennyson Leandro M.
+- family-names: Bahia
+  given-names: Ian Antunes Ferreira
+- family-names: da Silva
+  given-names: Patrick
+- family-names: Mandu-Gonçalves
+  given-names: Leonardo
+- family-names: Sarmento
+  given-names: Emanuella
+- family-names: Zanatta
+  given-names: Jonathan Miguel
+- family-names: Teixeira
+  given-names: Clara Andrade
+- family-names: Kato
+  given-names: Kathia Terumi
+- family-names: Sales
+  given-names: Manoela Osorio Reis
+- family-names: Lima
+  given-names: Carlos Neandro Cordeiro
+- family-names: Eleuterio
+  given-names: Bruno Prado
+- family-names: Manhães
+  given-names: Luciana dos Santos Barros
+- family-names: de Castro Oliveira
+  given-names: Bernardo
+- family-names: Preite
+  given-names: Nycolas Willian
+- family-names: Borges
+  given-names: Bruno Montanari
+- family-names: de Lima Kaminski
+  given-names: Valeria
+- family-names: Ayupe
+  given-names: Marina Caçador
+- family-names: dos Santos
+  given-names: Bianca Vieira
+- family-names: D'Império Lima
+  given-names: Maria Regina
+- family-names: da Fonseca
+  given-names: Denise Morais
+- family-names: Loures
+  given-names: Flavio Vieira
+- family-names: Calich
+  given-names: Vera Lúcia Garcia
+abstract: Computational analysis scripts and figure-generation workflows for the study of immune checkpoint
+  blockade in pulmonary paracoccidioidomycosis.
+keywords:
+- Paracoccidioidomycosis
+- immune checkpoint blockade
+- Th17 cells
+- antifungal immunity
+- single-cell RNA sequencing
+- myeloid cell communication

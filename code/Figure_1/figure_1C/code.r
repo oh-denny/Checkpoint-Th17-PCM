@@ -1,3 +1,11 @@
+# Figure/panel: 1C
+# Purpose: Annotated lung-cell UMAP.
+# Inputs (under data/ unless session objects): combined_data_1.rds.
+# Packages: Seurat, dplyr, ggplot2, purrr, ragg, readr, stringr, tidyr.
+# Outputs: Figure1B_UMAP_600dpi.tiff.
+# Prerequisites: None; annotations and UMAP must already exist.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 
 library(ggplot2)
@@ -22,7 +30,7 @@ combined_data_integrated$cluster_celltype = paste0(
 
 ordered_levels = unique(combined_data_integrated$cluster_celltype[order(as.numeric(as.character(combined_data_integrated$RNA_snn_res.0.2)))])
 
-combined_data_integrated$cluster_celltype =- factor(
+combined_data_integrated$cluster_celltype = factor(
   combined_data_integrated$cluster_celltype, 
   levels = ordered_levels
 )

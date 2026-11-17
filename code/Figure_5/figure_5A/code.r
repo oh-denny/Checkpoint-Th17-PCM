@@ -1,3 +1,12 @@
+# Figure/panel: 5A
+# Purpose: Pseudobulk edgeR and NicheNet ligand-target inference.
+# Inputs (under data/ unless session objects): combined_data_1.rds; t_cells_CD4.rds; nichenet/*.rds; session pb_th17; live OmniPath.
+# Packages: dplyr, grid, ragg, readr.
+# Outputs: ./data/OmniNetworks_NNformat/lr_Network_Omnipath.rds; Figure5a_p_nichenet_final.tiff.
+# Prerequisites: BLOCKED: pb_th17 construction absent; functions/nichenet.r.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+if (!exists("pb_th17", inherits = TRUE)) stop("Missing pb_th17. Restore the author-approved pb_th17 pseudobulk list (counts and metadata); its construction is absent. See data/README.md.")
 
 
 source("./functions/nichenet.r")

@@ -1,7 +1,17 @@
+# Figure/panel: 3D–G companion
+# Purpose: Bootstrap relative effects for selected CD4 genes.
+# Inputs (under data/ unless session objects): t_cells_CD4.rds.
+# Packages: inherited through prerequisite/helper; see inventory.
+# Outputs: CD4_relative_effects.tiff.
+# Prerequisites: functions/rel.r; REffect installed in advance.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
 
 
-devtools::install_github("oh-denny/relative_effect")
-source("./funtions/rel.r")
+
+if (!requireNamespace("REffect", quietly = TRUE)) {
+  stop("Install REffect from oh-denny/relative_effect before running this script.")
+}
+source("./functions/rel.r")
 t_cells_CD4 = readRDS("./data/t_cells_CD4.rds")
 
 genes_use = c(

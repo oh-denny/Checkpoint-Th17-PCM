@@ -1,3 +1,11 @@
+# Figure/panel: 1D
+# Purpose: Animal-level composition and Dirichlet regression.
+# Inputs (under data/ unless session objects): combined_data_1.rds.
+# Packages: DirichletReg, dplyr, forcats, ggplot2, ragg, scales, tidyr.
+# Outputs: heatmap_dirichlet.tiff.
+# Prerequisites: None; processed inputs required.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 library(DirichletReg)
 library(dplyr)
 library(tidyr)

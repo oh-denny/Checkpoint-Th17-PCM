@@ -1,3 +1,11 @@
+# Figure/panel: 3J
+# Purpose: Th17 module score split by experimental group.
+# Inputs (under data/ unless session objects): t_cells_CD4.rds.
+# Packages: Seurat, ggplot2.
+# Outputs: feature_plot.pdf.
+# Prerequisites: None; historical CD4 object required.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 
 library(ggplot2)
@@ -73,5 +81,5 @@ feature_plot = FeaturePlot(
   )
 
 pdf("feature_plot.pdf", width = 15, height = 3)
-feature_plot
+print(feature_plot)
 dev.off()

@@ -1,3 +1,11 @@
+# Figure/panel: Supplementary 2A
+# Purpose: Marker heatmap, ternary-gene dot plots and cell-class scores.
+# Inputs (under data/ unless session objects): combined_data_1.rds; session top_vertex_genes.
+# Packages: Matrix, Seurat, dplyr, ggplot2, grid, purrr, ragg, readr, scales, stringr, tidyr.
+# Outputs: Figure2A_UMAP_600dpi.tiff.
+# Prerequisites: REVIEW: top_vertex_genes has no verified producer.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 
 library(ggplot2)
@@ -67,7 +75,7 @@ ggsave(
 )
 
 
-remotes::install_github("neurorestore/Augur")
+# Historical Augur installation removed: Augur is not called by this script.
 
 
 
@@ -134,7 +142,7 @@ make_facet_dotplot_df <- function(
 
   plot_df <- bind_rows(res_list)
 
-  # escalar por gene, como o DotPlot do Seurat faz
+  # Scale per gene, following Seurat DotPlot
   plot_df <- plot_df %>%
     group_by(gene) %>%
     mutate(
@@ -279,7 +287,7 @@ obj$cell_class <- dplyr::case_when(
   TRUE ~ NA_character_
 )
 
-# Conferir as populações selecionadas
+# Inspect the selected populations
 table(obj$cell_class, useNA = "ifany")
 table(obj$subtype_cell[obj$cell_class == "T cells"])
 # ====================================================
@@ -332,7 +340,7 @@ for (celltype in names(signatures)) {
   print(genes_use)
 
   if (length(genes_use) < 3) {
-    stop("Poucos genes para: ", celltype)
+    stop("Too few genes for: ", celltype)
   }
 
   obj_sub <- AddModuleScore(
@@ -343,7 +351,7 @@ for (celltype in names(signatures)) {
     seed = 123
   )
 
-  # Média por animal
+  # Mean per animal
   df_sub <- obj_sub@meta.data %>%
     group_by(cartig, groups) %>%
     summarise(

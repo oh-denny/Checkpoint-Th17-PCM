@@ -1,3 +1,12 @@
+# Figure/panel: 3A
+# Purpose: T-cell selection, CD4 reclustering and UMAP.
+# Inputs (under data/ unless session objects): combined_data_1.rds.
+# Packages: Seurat, dplyr, ggplot2, tibble, tidyr.
+# Outputs: DIMT_supp_per group.tiff; ./data/t_cells_CD4.rds; DIMT.tiff.
+# Prerequisites: None; overwrites historical t_cells_CD4.rds if run.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+library(ggplot2)
 library(Seurat)
 library(dplyr)
 library(tidyr)
@@ -54,8 +63,7 @@ DimPlot(
   group.by = "seurat_clusters",
   label = TRUE,
   repel = TRUE,
-  pt.size = 0.6,
-  split.by = 'groups'
+  pt.size = 0.6
 ) +
   NoLegend() +
   theme_classic() +
@@ -71,7 +79,7 @@ dev.off()
 
 t_cells_CD4 = subset(
   t_cells,
-  subset = !seurat_clusters %in% c("1")
+  subset = seurat_clusters %in% c("0", "2", "3", "4", "5")
 )
 
 DefaultAssay(t_cells_CD4) = "RNA"

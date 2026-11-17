@@ -1,3 +1,12 @@
+# Figure/panel: 5C–D
+# Purpose: Ligand-target chord diagrams.
+# Inputs (under data/ unless session objects): session plot_df.
+# Packages: circlize, dplyr.
+# Outputs: ./Figure_pbs_naive.tiff; ./Figure_antictla_pbs.tiff.
+# Prerequisites: Run figure_5A; functions/circos.r.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+if (!exists("plot_df", inherits = TRUE)) stop("Missing plot_df. Run Figure 5A in this R session first; plot_df must contain ligand-target predictions.")
 
 
 

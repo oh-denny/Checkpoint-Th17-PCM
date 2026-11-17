@@ -1,3 +1,8 @@
+# Shared helper: GO program signatures and annotation helpers; annotate_th17_terms is explicit.
+# Inputs: caller arguments/session objects; no automatic data loading.
+# Outputs: functions and documented constants; plots only when called.
+# Dependencies/prerequisites: see docs/SCRIPT_INVENTORY.md and SOFTWARE_REQUIREMENTS.md.
+
 
 
 
@@ -72,6 +77,8 @@ get_signature_genes <- function(
   )
 }
 
+# Optional annotation, called only after go_table and th17_signature exist.
+annotate_th17_terms <- function(go_table, th17_signature) {
 go_table <- go_table |>
   dplyr::mutate(
 
@@ -94,6 +101,9 @@ go_table <- go_table |>
       stringr::fixed("/Il17a/")
     )
   )
+  go_table
+}
+
 
 
 

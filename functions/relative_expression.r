@@ -1,3 +1,8 @@
+# Shared helper: Ternary expression helpers; caller supplies expr, meta, comparisons, palette and plot tables.
+# Inputs: caller arguments/session objects; no automatic data loading.
+# Outputs: functions and documented constants; plots only when called.
+# Dependencies/prerequisites: see docs/SCRIPT_INVENTORY.md and SOFTWARE_REQUIREMENTS.md.
+
 
 library(Seurat)
 library(Matrix)
@@ -21,7 +26,7 @@ get_ternary_data <- function(
     )
 
   if (nrow(md) == 0) {
-    stop("Nenhuma célula encontrada para: ", celltype)
+    stop("No cells found for: ", celltype)
   }
 
   sample_ids <- unique(md$cartig)
@@ -55,7 +60,7 @@ get_ternary_data <- function(
       sample_cols <- sample_groups == g
 
       if (!any(sample_cols)) {
-        stop("Grupo ausente: ", g)
+        stop("Missing group: ", g)
       }
 
       rowMeans(
@@ -376,12 +381,10 @@ immune_gene_dict <- list(
     "Cd44", "Cd69", "Icos", "Tnfrsf4", "Tnfrsf9",
     "Irf4", "Lef1", "Tcf7", "Ccr7", "Sell", "Klf2",
     "Tob1", "Il6st", "Orai1", "Prkca", "Nfkbia"
-  )q
+  )
 )
 
 force_keep_tcells <- c(
   "Il17a", "Foxp3", "Il2ra", "Rorc", "Rora", "Maf",
   "Ctla4", "Cd44", "Irf4", "Lef1", "Tcf7"
-)
-
 )

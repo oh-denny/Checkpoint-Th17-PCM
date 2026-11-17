@@ -1,3 +1,8 @@
+# Shared helper: Composition prioritization and DE ordering-gene selection.
+# Inputs: caller arguments/session objects; no automatic data loading.
+# Outputs: functions and documented constants; plots only when called.
+# Dependencies/prerequisites: see docs/SCRIPT_INVENTORY.md and SOFTWARE_REQUIREMENTS.md.
+
 
 
 ### group levels
@@ -62,7 +67,7 @@ get_cfu_benefit <- function(
   if (nrow(result) != 1) {
     stop(
       paste0(
-        "Contraste de CFU não encontrado ou duplicado: ",
+        "CFU contrast missing or duplicated: ",
         treatment,
         " versus ",
         reference
@@ -103,7 +108,7 @@ create_concordance_ranking <- function(
   if (length(missing_columns) > 0) {
     stop(
       paste(
-        "Colunas ausentes:",
+        "Missing columns:",
         paste(missing_columns, collapse = ", ")
       )
     )
@@ -178,7 +183,7 @@ plot_concordance_ranking <- function(
     na.rm = TRUE
   )
 
-  # Evita problema caso todos os scores sejam zero
+  # Handle the case where all scores are zero
   if (!is.finite(max_score) || max_score <= 0) {
     max_score <- 1
   }
@@ -446,15 +451,15 @@ select_de_genes <- function(
   } else if ("avg_logFC" %in% colnames(de_df)) {
     "avg_logFC"
   } else {
-    stop("Não foi encontrada a coluna avg_log2FC ou avg_logFC.")
+    stop("Neither avg_log2FC nor avg_logFC was found.")
   }
 
-  # Validar coluna de p-valor ajustado
+  # Check the p-value column used by the historical filter
   if (!"p_val" %in% colnames(de_df)) {
-    stop("A coluna p_val não foi encontrada.")
+    stop("The p_val column was not found.")
   }
 
-  # Filtrar genes diferencialmente expressos
+  # Filter differentially expressed genes
   de_filtered <- de_df |>
     dplyr::filter(
       !is.na(.data$p_val),

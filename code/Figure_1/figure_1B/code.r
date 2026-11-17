@@ -1,3 +1,11 @@
+# Figure/panel: 1B
+# Purpose: CFU group linear model and estimated marginal means.
+# Inputs (under data/ unless session objects): combined_data_1.rds; CFU/cfu_exp1.csv; CFU/mapping_exp1.csv.
+# Packages: Seurat, dplyr, emmeans, ggplot2, purrr, ragg, readr, stringr, tibble, tidyr.
+# Outputs: forestplot.tiff.
+# Prerequisites: None; processed inputs required.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 library(emmeans)
 library(ggplot2)

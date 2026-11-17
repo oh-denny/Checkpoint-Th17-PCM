@@ -1,3 +1,8 @@
+# Shared helper: Monocle 2 compatibility patches for dplyr and igraph; apply patch_monocle2 explicitly.
+# Inputs: caller arguments/session objects; no automatic data loading.
+# Outputs: functions and documented constants; plots only when called.
+# Dependencies/prerequisites: see docs/SCRIPT_INVENTORY.md and SOFTWARE_REQUIREMENTS.md.
+
 # Compatibility patches for running Monocle 2 with recent dplyr/igraph.
 
 .patch_binding <- function(namespace, name, value) {

@@ -1,3 +1,13 @@
+# Figure/panel: 4H
+# Purpose: Neutrophil differential expression and GO enrichment.
+# Inputs (under data/ unless session objects): session obj_cellchat_clean.
+# Packages: Seurat, clusterProfiler, dplyr, ggplot2, org.Mm.eg.db, tidyr.
+# Outputs: enrichment.tiff.
+# Prerequisites: Run figure_4A.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+library(Seurat)
+if (!exists("obj_cellchat_clean", inherits = TRUE)) stop("Missing obj_cellchat_clean. Run Figure 4A in this R session first.")
 
 
 library(clusterProfiler)

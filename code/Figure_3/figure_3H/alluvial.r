@@ -1,3 +1,14 @@
+# Figure/panel: 3H companion
+# Purpose: Enrichment-to-program alluvial plot.
+# Inputs (under data/ unless session objects): session program_summary_complete.
+# Packages: dplyr, ggalluvial, ggplot2, ggrepel.
+# Outputs: alluvial.tiff.
+# Prerequisites: Run figure_3H/heatmap.r first in the same session.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+library(dplyr)
+library(ggplot2)
+if (!exists("program_summary_complete", inherits = TRUE)) stop("Missing program_summary_complete. Run Figure 3H heatmap.r in this R session first.")
 
 
 ### run heatmap first

@@ -1,3 +1,8 @@
+# Shared helper: NicheNet and edgeR helpers; caller supplies expr, meta, expression_pct, network resources and pseudobulk list.
+# Inputs: caller arguments/session objects; no automatic data loading.
+# Outputs: functions and documented constants; plots only when called.
+# Dependencies/prerequisites: see docs/SCRIPT_INVENTORY.md and SOFTWARE_REQUIREMENTS.md.
+
 
 
 library(purrr)

@@ -1,3 +1,15 @@
+# Figure/panel: 4F–G
+# Purpose: Myeloid–T-cell interaction-strength comparison.
+# Inputs (under data/ unless session objects): session cc_*_clean and get_comm_weight.
+# Packages: dplyr, ggplot2, tidyr.
+# Outputs: communication_panel.tiff.
+# Prerequisites: Run figure_4A then figure_4B-D.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
+if (!exists("cc_pbs_clean", inherits = TRUE)) stop("Missing cc_pbs_clean. Run Figure 4A then 4B-D in this R session first.")
+if (!exists("cc_pd1_clean", inherits = TRUE)) stop("Missing cc_pd1_clean. Run Figure 4A then 4B-D in this R session first.")
+if (!exists("cc_ctl_clean", inherits = TRUE)) stop("Missing cc_ctl_clean. Run Figure 4A then 4B-D in this R session first.")
+if (!exists("get_comm_weight", inherits = TRUE)) stop("Missing get_comm_weight. Run Figure 4A then 4B-D in this R session first.")
 
 
 library(tidyr)

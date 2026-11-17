@@ -1,3 +1,11 @@
+# Figure/panel: 3H
+# Purpose: GO enrichment and functional-program classification.
+# Inputs (under data/ unless session objects): four cds_condition_*.rds.
+# Packages: clusterProfiler, dplyr, enrichplot, ggplot2, monocle, org.Mm.eg.db, ragg, stringr, tibble, tidyr.
+# Outputs: GO_programs_gene_supported_heatmap.tiff.
+# Prerequisites: Historical trajectories; functions/classify_enrich.r.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 
 library(clusterProfiler)
@@ -11,11 +19,12 @@ library(enrichplot)
 library(monocle)
 
 source("./functions/classify_enrich.r")
+trajectory_data_dir = getOption("paracocco.trajectory_data_dir", "data")
 
-cds_condition_pbs = readRDS("./data/cds_condition_PBS_naive.rds")
-cds_condition_igg = readRDS("./data/cds_condition_IGG_pbs.rds")
-cds_condition_pd1 = readRDS("./data/cds_condition_PD1_pbs.rds")
-cds_condition_ctl = readRDS("./data/cds_condition_CTLA4_pbs.rds")
+cds_condition_pbs = readRDS(file.path(trajectory_data_dir, "cds_condition_PBS_naive.rds"))
+cds_condition_igg = readRDS(file.path(trajectory_data_dir, "cds_condition_IGG_pbs.rds"))
+cds_condition_pd1 = readRDS(file.path(trajectory_data_dir, "cds_condition_PD1_pbs.rds"))
+cds_condition_ctl = readRDS(file.path(trajectory_data_dir, "cds_condition_CTLA4_pbs.rds"))
 
 
 genes_infection = get_ordering_genes(cds_condition_pbs)

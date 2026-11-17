@@ -1,3 +1,11 @@
+# Figure/panel: 2D–E
+# Purpose: Sample-averaged relative-expression ternary plots.
+# Inputs (under data/ unless session objects): combined_data_1.rds.
+# Packages: grDevices, httpgd, purrr.
+# Outputs: Ternary_Naive_PBS_PD1.tiff; Ternary_Naive_PBS_CTLA4.tiff.
+# Prerequisites: functions/relative_expression.r.
+# Execution: repository root; see README and docs/SCRIPT_INVENTORY.md.
+
 
 
 source("functions/relative_expression.r")
@@ -130,7 +138,7 @@ p_ctla4 = plot_ternary(
 print(p_pd1)
 print(p_ctla4)
 
-httpgd::hgd()
+if (interactive()) httpgd::hgd()
 
 
 graphics.off()
