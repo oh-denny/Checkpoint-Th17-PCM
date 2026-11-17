@@ -429,7 +429,7 @@ plot_prioritization_ranking <- function(
 
 
 ### trajectory
-select_de_genes = function(
+select_de_genes <- function(
     de_table,
     n_up = 50,
     n_down = 50,
@@ -437,11 +437,11 @@ select_de_genes = function(
     logfc_cutoff = 0.25
 ) {
 
-  de_df = de_table |>
+  de_df <- de_table |>
     as.data.frame() |>
     tibble::rownames_to_column("gene")
 
-  fc_column = if ("avg_log2FC" %in% colnames(de_df)) {
+  fc_column <- if ("avg_log2FC" %in% colnames(de_df)) {
     "avg_log2FC"
   } else if ("avg_logFC" %in% colnames(de_df)) {
     "avg_logFC"
@@ -449,31 +449,44 @@ select_de_genes = function(
     stop("Não foi encontrada a coluna avg_log2FC ou avg_logFC.")
   }
 
-  de_filtered = de_df |>
-    filter(
-      !is.na(p_val),
-      p_val < padj_cutoff,
+  # Validar coluna de p-valor ajustado
+  if (!"p_val" %in% colnames(de_df)) {
+    stop("A coluna p_val não foi encontrada.")
+  }
+
+  # Filtrar genes diferencialmente expressos
+  de_filtered <- de_df |>
+    dplyr::filter(
+      !is.na(.data$p_val),
+      .data$p_val < padj_cutoff,
       abs(.data[[fc_column]]) > logfc_cutoff
     ) |>
-    filter(
+    dplyr::filter(
       !grepl(
         "^mt-|^Rpl|^Rps|^Hba|^Hbb|^Igh|^Igk|^Igl",
-        gene,
+        .data$gene,
         ignore.case = TRUE
-      )
+      ),
+      .data$gene != "."
     )
 
-  genes_up = de_filtered |>
-    filter(.data[[fc_column]] > 0) |>
-    arrange(desc(.data[[fc_column]])) |>
-    slice_head(n = n_up) |>
-    pull(gene)
+  # Upregulated genes
+  genes_up <- de_filtered |>
+    dplyr::filter(.data[[fc_column]] > 0) |>
+    dplyr::arrange(dplyr::desc(.data[[fc_column]])) |>
+    dplyr::slice_head(n = n_up) |>
+    dplyr::pull(gene)
 
-  genes_down = de_filtered |>
-    filter(.data[[fc_column]] < 0) |>
-    arrange(.data[[fc_column]]) |>
-    slice_head(n = n_down) |>
-    pull(gene)
+  # Downregulated genes
+  genes_down <- de_filtered |>
+    dplyr::filter(.data[[fc_column]] < 0) |>
+    dplyr::arrange(.data[[fc_column]]) |>
+    dplyr::slice_head(n = n_down) |>
+    dplyr::pull(gene)
 
   unique(c(genes_up, genes_down))
 }
+
+
+
+

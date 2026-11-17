@@ -2,6 +2,9 @@ source("functions/functions.r")
 source("functions/patch/patch.r")
 patch_monocle2()
 
+library(Seurat)
+library(monocle)
+
 group_colors = c(
   "naive"     = "#F06A8A", 
   "pbs"       = "#6F7F5A",  
@@ -51,7 +54,7 @@ cds = newCellDataSet(
 )
 
 patch_monocle2()
-SC_condition = t_cells_CD4
+SC_condition = SC_obj_sub
 
 DefaultAssay(SC_condition) = "RNA"
 Idents(SC_condition) = "groups"
@@ -63,7 +66,7 @@ de_pbs_naive = FindMarkers(
   ident.2 = "naive",
   assay = "RNA",
   layer = "data",
-  min.pct = 0.10,
+  min.pct = 0.05,
   logfc.threshold = 0.10,
   only.pos = FALSE
 )
@@ -74,7 +77,7 @@ de_pd1_pbs = FindMarkers(
   ident.2 = "pbs",
   assay = "RNA",
   layer = "data",
-  min.pct = 0.10,
+  min.pct = 0.05,
   logfc.threshold = 0.10,
   only.pos = FALSE
 )
@@ -85,7 +88,7 @@ de_ctla4_pbs = FindMarkers(
   ident.2 = "pbs",
   assay = "RNA",
   layer = "data",
-  min.pct = 0.10,
+  min.pct = 0.05,
   logfc.threshold = 0.10,
   only.pos = FALSE
 )
@@ -96,16 +99,15 @@ de_igg_pbs = FindMarkers(
   ident.2 = "pbs",
   assay = "RNA",
   layer = "data",
-  min.pct = 0.10,
+  min.pct = 0.05,
   logfc.threshold = 0.10,
   only.pos = FALSE
 )
 
-
 genes_infection = select_de_genes(
   de_pbs_naive,
   n_up = 50,
-  n_down = 50
+  n_down = 40
 )
 
 genes_pd1 = select_de_genes(
@@ -152,20 +154,24 @@ ordering_genes_condition = intersect(
   rownames(cds)
 ) # 4
 
+set.seed(1234)
 cds_condition = cds
+cds_condition = estimateSizeFactors(cds_condition)
+cds_condition = estimateDispersions(cds_condition)
 cds_condition = setOrderingFilter(
   cds_condition,
   ordering_genes_condition
 )
 
-set.seed(1234)
-
 cds_condition = reduceDimension(
   cds_condition,
   max_components = 2,
-  method = "DDRTree"
+  method = "DDRTree",
+  ncenter = 30 
 )
+
 cds_condition = orderCells(cds_condition)
+
 pData(cds_condition)$groups = factor(
   pData(cds_condition)$groups,
   levels = names(group_colors)
@@ -269,4 +275,43 @@ genes_table <- data.frame(
 openxlsx::write.xlsx(
   genes_table,
   "~/Desktop/genes_trajectory.xlsx"
+)
+
+
+
+
+
+
+
+
+
+cds_condition <- cds
+
+cds_condition <- cds_condition[
+  ,
+  Matrix::colSums(exprs(cds_condition)) > 0
+]
+
+cds_condition <- estimateSizeFactors(cds_condition)
+
+cds_condition <- estimateDispersions(cds_condition)
+
+cds_condition <- setOrderingFilter(
+  cds_condition,
+  ordering_genes_condition
+)
+
+stopifnot(
+  all(is.finite(sizeFactors(cds_condition))),
+  all(sizeFactors(cds_condition) > 0)
+)
+
+set.seed(1234)
+
+cds_condition <- reduceDimension_safe(
+  cds_condition,
+  max_components = 2,
+  reduction_method = "DDRTree",
+  auto_param_selection = TRUE,
+  verbose = TRUE
 )
